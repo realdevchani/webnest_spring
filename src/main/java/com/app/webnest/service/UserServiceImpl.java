@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
     }
 
     // 2. 비밀번호 암호화
-    userVO.setUserPassword(passwordEncoder.encode(userVO.getUserPassword()));
+    // userVO.setUserPassword(passwordEncoder.encode(userVO.getUserPassword()));
 
     // 3. 회원 가입
     if(userVO.getUserNickname() == null || userVO.getUserNickname().isBlank()) {

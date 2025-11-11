@@ -49,9 +49,9 @@ public class OAuthServiceImpl implements OAuthService {
     // 2. 비밀번호 확인
     Long userId = userDAO.findIdByUserEmail(userVO.getUserEmail());
     UserVO foundUser = userDAO.findById(userId).orElseThrow(() -> new UserException("회원이 없습니다"));
-    if(!passwordEncoder.matches(userVO.getUserPassword(), foundUser.getUserPassword())) {
-      throw new UserException("비밀번호를 확인해주세요.");
-    }
+//    if(!passwordEncoder.matches(userVO.getUserPassword(), foundUser.getUserPassword())) {
+//      throw new UserException("비밀번호를 확인해주세요.");
+//    }
 
     // 3. 토큰 생성
     claim.put("userEmail", userVO.getUserEmail());
