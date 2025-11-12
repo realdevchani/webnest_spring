@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.app.webnest.mapper.ChatMessageMapper">
+
+    <!-- 채팅방에 채팅 전체 조회 -->
+    <select id="selectAll" parameterType="ChatMessageVO" resultType="ChatMessageDTO" >
+        SELECT
+        TBCM.ID,
+        TBCM.CHAT_MESSAGE_CONTENT,
+        TBCM.CHAT_MESSAGE_TYPE,
+        TBCM.CHAT_MESSAGE_READ_STATUS,
+        TBCM.CHAT_MESSAGE_CREATE_AT,
+        TBCM.USER_SENDER_ID,
+        TBSENDER.USER_NICKNAME AS SENDER_NICKNAME,
+        TBSENDER.USER_THUMBNAIL_URL AS SENDER_THUMBNAIL_URL,
+        TBSENDER.USER_LEVEL AS SENDER_LEVEL,
+        TBCM.USER_RECEIVER_ID,
+        TBRECEIVER.USER_NICKNAME AS RECEIVER_NICKNAME,
+        TBRECEIVER.USER_THUMBNAIL_URL AS RECEIVER_THUMBNAIL_URL,
+        TBRECEIVER.USER_LEVEL AS RECEIVER_LEVEL,
+        TBCM.GAME_ROOM_ID
+        FROM TBL_CHAT_MESSAGE TBCM
+        LEFT JOIN TBL_USER TBSENDER ON TBCM.USER_SENDER_ID = TBSENDER.ID
+        LEFT JOIN TBL_USER TBRECEIVER ON TBCM.USER_RECEIVER_ID = TBRECEIVER.ID
+        WHERE TBCM.GAME_ROOM_ID = #{gameRoomId}
+        AND (
+        TBCM.USER_RECEIVER_ID IS NULL
+        OR TBCM.USER_RECEIVER_ID = #{userReceiverId}
+        OR TBCM.USER_SENDER_ID = #{userSenderId}
+        )
+        ORDER BY TBCM.CHAT_MESSAGE_CREATE_AT ASC
+    </select>
+
+    <select id="select" parameterType="ChatMessageVO" resultType="ChatMessageDTO" >
+        SELECT
+        TBCM.ID,
+        TBCM.CHAT_MESSAGE_CONTENT,
+        TBCM.CHAT_MESSAGE_TYPE,
+        TBCM.CHAT_MESSAGE_READ_STATUS,
+        TBCM.CHAT_MESSAGE_CREATE_AT,
+        TBCM.USER_SENDER_ID,
+        TBSENDER.USER_NICKNAME AS SENDER_NICKNAME,
+        TBSENDER.USER_THUMBNAIL_URL AS SENDER_THUMBNAIL_URL,
+        TBSENDER.USER_LEVEL AS SENDER_LEVEL,
+        TBCM.USER_RECEIVER_ID,
+        TBRECEIVER.USER_NICKNAME AS RECEIVER_NICKNAME,
+        TBRECEIVER.USER_THUMBNAIL_URL AS RECEIVER_THUMBNAIL_URL,
+        TBRECEIVER.USER_LEVEL AS RECEIVER_LEVEL,
+        TBCM.GAME_ROOM_ID
+        FROM TBL_CHAT_MESSAGE TBCM
+        LEFT JOIN TBL_USER TBSENDER ON TBCM.USER_SENDER_ID = TBSENDER.ID
+        LEFT JOIN TBL_USER TBRECEIVER ON TBCM.USER_RECEIVER_ID = TBRECEIVER.ID
+        WHERE TBCM.GAME_ROOM_ID = #{gameRoomId}
+        AND (
+        TBCM.USER_RECEIVER_ID IS NULL
+        OR TBCM.USER_RECEIVER_ID = #{userReceiverId}
+        OR TBCM.USER_SENDER_ID = #{userSenderId}
+        )
+        AND TBCM.ID = #{id}
+        ORDER BY TBCM.CHAT_MESSAGE_CREATE_AT ASC
+    </select>
+
+    <!-- 채팅 추가 -->
+    <insert id="insert" parameterType="ChatMessageVO">
+        <selectKey keyProperty="id" resultType="Long" order="BEFORE">
+            SELECT SEQ_CHAT_MESSAGE.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TBL_CHAT_MESSAGE(ID, CHAT_MESSAGE_CONTENT, CHAT_MESSAGE_TYPE, CHAT_MESSAGE_READ_STATUS, USER_SENDER_ID, USER_RECEIVER_ID, GAME_ROOM_ID)
+        VALUES (#{id}, #{chatMessageContent}, #{chatMessageType}, #{chatMessageReadStatus}, #{userSenderId}, #{userReceiverId}, #{gameRoomId})
+    </insert>
+
+    <!-- 읽음 처리 -->
+    <update id="updateReadStatus" parameterType="ChatMessageVO">
+        UPDATE TBL_CHAT_MESSAGE
+        SET CHAT_MESSAGE_READ_STATUS = 1
+        WHERE
+            USER_RECEIVER_ID = #{userReceiverId}
+        AND
+            GAME_ROOM_ID = #{gameRoomId}
+    </update>
+
+
+</mapper>

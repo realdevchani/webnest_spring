@@ -9,7 +9,13 @@ import java.time.LocalDateTime;
 public class GameJoinVO {
     private Long id;
     private Long userId;
-    private Long gameRoomId; // 이알디 확인
+    private Long gameRoomId;
     private Integer gameJoinIsHost;
     private LocalDateTime gameJoinCreateAt;
+
+    public GameJoinVO(ChatMessageVO chatMessageVO) {
+        this.gameRoomId = chatMessageVO.getGameRoomId();
+        this.userId = chatMessageVO.getUserSenderId();
+    }
+
 }

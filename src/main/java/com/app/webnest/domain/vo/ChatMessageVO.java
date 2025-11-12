@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 public class ChatMessageVO {
     private Long id;
     private String chatMessageContent;
+    private String chatMessageType;
+    private boolean chatMessageReadStatus;
     private LocalDateTime chatMessageCreateAt;
     private Long userSenderId;
     private Long userReceiverId;

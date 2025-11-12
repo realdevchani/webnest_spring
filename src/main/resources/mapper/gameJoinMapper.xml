@@ -12,4 +12,18 @@
         JOIN TBL_USER TBU
         ON TBGJ.USER_ID = TBU.ID AND TBGJ.GAME_ROOM_ID = #{gameRoomId}
     </select>
+
+    <insert id="insert" parameterType="GameJoinVO">
+        INSERT INTO TBL_GAME_JOIN(ID, GAME_JOIN_IS_HOST, USER_ID, GAME_ROOM_ID)
+        VALUES (SEQ_GAME_JOIN.NEXTVAL, #{gameJoinIsHost}, #{userId}, #{gameRoomId})
+    </insert>
+
+    <delete id="delete" parameterType="GameJoinVO">
+        DELETE FROM TBL_GAME_JOIN
+        WHERE
+            USER_ID = #{userId}
+        AND
+            GAME_ROOM_ID = #{gameRoomId}
+    </delete>
+
 </mapper>
