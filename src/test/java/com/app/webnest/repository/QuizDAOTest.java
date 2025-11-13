@@ -38,4 +38,14 @@ class QuizDAOTest {
     public void selectByQuizExpectationTest() {
         log.info("expectation {}", quizDAO.selectExpectationById(1L));
     }
+
+
+    @Test
+    void insertQuizPersonalTest() {
+    }
+
+
+    @Test
+    void deleteQuizPersonalTest() {
+    }
 }

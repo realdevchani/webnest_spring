@@ -2,6 +2,7 @@ package com.app.webnest.service;
 
 import com.app.webnest.domain.dto.QuizPersonalDTO;
 import com.app.webnest.domain.dto.QuizResponseDTO;
+import com.app.webnest.domain.vo.QuizPersonalVO;
 import com.app.webnest.domain.vo.QuizVO;
 import com.app.webnest.exception.QuizException;
 import com.app.webnest.repository.QuizDAO;
@@ -55,20 +56,21 @@ public class QuizServiceImpl implements QuizService {
         return quizDAO.selectExpectationById(id);
     }
 
-    @Override
-    public String javaCompilerOutput(QuizResponseDTO quizResponseDTO) {
-        QuizResponseDTO users = new QuizResponseDTO();
-        users.setCode("Hello.java");
-        try {
-            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-            String result = String.valueOf(compiler.run(null, null, null, users.getCode()));
-            compiler.getSourceVersions();
 
-            compiler.getTask(null,null,null,null, null, null).call();
-            return result;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    @Override
+    public Integer isBookmarked(QuizResponseDTO quizResponseDTO) {
+         return quizDAO.updateBookmark(quizResponseDTO);
         }
-//                익셉션 발생시 글로버 핸들러로 ㅅ상태 반환
+    @Override
+    public Integer isSolved(QuizResponseDTO quizResponseDTO) {
+        return quizDAO.updateIsSolve(quizResponseDTO);
     }
+    @Override
+    public QuizPersonalVO findQuizPersonalById(QuizResponseDTO quizResponseDTO) { return quizDAO.selectQuizPersonalById(quizResponseDTO); }
+
+    @Override
+    public void saveQuizPersonal(QuizPersonalVO quizPersonalVO) { quizDAO.insertQuizPersonal(quizPersonalVO); }
+
+    @Override
+    public void deleteQuizPersonal(Long id){}
 }
