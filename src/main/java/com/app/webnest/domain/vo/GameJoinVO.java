@@ -11,6 +11,7 @@ public class GameJoinVO {
     private Long userId;
     private Long gameRoomId;
     private Integer gameJoinIsHost;
+    private String gameJoinTeamcolor;
     private LocalDateTime gameJoinCreateAt;
 
     public GameJoinVO(ChatMessageVO chatMessageVO) {

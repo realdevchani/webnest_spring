@@ -11,6 +11,7 @@ public class GameJoinDTO {
     private Long userId;
     private Long gameRoomId; // 이알디 확인
     private boolean gameJoinIsHost;
+    private String gameJoinTeamcolor;
     private LocalDateTime gameJoinCreateAt;
     private String userName;
     private String userBirthday;
