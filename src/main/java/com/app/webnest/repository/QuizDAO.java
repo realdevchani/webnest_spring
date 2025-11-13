@@ -1,6 +1,8 @@
 package com.app.webnest.repository;
 
 import com.app.webnest.domain.dto.QuizPersonalDTO;
+import com.app.webnest.domain.dto.QuizResponseDTO;
+import com.app.webnest.domain.vo.QuizPersonalVO;
 import com.app.webnest.domain.vo.QuizVO;
 import com.app.webnest.mapper.QuizMapper;
 import lombok.RequiredArgsConstructor;
@@ -34,4 +36,20 @@ public class QuizDAO {
 
 //    퀴즈리드 (join)
     public QuizPersonalDTO selectQuizPersonalAll() { return  quizMapper.selectQuizPersonalAll(); }
+
+    //    해당퀴즈에 대한 personal정보
+    public QuizPersonalVO  selectQuizPersonalById(QuizResponseDTO quizResponseDTO) { return quizMapper.selectQuizPersonalById(quizResponseDTO); }
+
+    //    퀴즈 풀었던 내역저장
+    public void insertQuizPersonal(QuizPersonalVO quizPersonalVO) { quizMapper.insert(quizPersonalVO); }
+
+//    해당퀴즈 북마크여부
+    public Integer updateBookmark(QuizResponseDTO quizResponseDTO){ return quizMapper.updateIsBookmark(quizResponseDTO); }
+
+//    해당퀴즈 해결여부
+    public Integer updateIsSolve(QuizResponseDTO quizResponseDTO){  return quizMapper.updateIsSolve(quizResponseDTO); }
+
+//    회원탈퇴시 데이터삭제
+    public void deleteQuizPersonal(Long id){}
+
 }

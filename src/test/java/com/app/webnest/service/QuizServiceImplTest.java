@@ -1,5 +1,6 @@
 package com.app.webnest.service;
 
+import com.app.webnest.domain.dto.QuizPersonalDTO;
 import com.app.webnest.domain.dto.QuizResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,10 @@ class QuizServiceImplTest {
         map.put("cursor", "1");
 
         log.info("getQuizList: {}", quizService.quizDirection(map));
+    }
+
+    @Test
+    void insertQuizPersonal(){
     }
 
 }

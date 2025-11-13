@@ -1,5 +1,6 @@
 package com.app.webnest.mapper;
 
+import com.app.webnest.domain.vo.QuizPersonalVO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,5 +18,23 @@ class QuizMapperTest {
     @Test
     void selectQuizPersonalAllTest() {
         log.info("selectQuizPersonalAllTest {}", quizMapper.selectQuizPersonalAll());
+    }
+
+    @Test
+    void selectQuizPersonalByIdTest() {
+    }
+
+    @Test
+    void insert() {
+        QuizPersonalVO quizPersonalVO = new QuizPersonalVO();
+        quizPersonalVO.setId(2L);
+        quizPersonalVO.setQuizId(2L);
+        quizPersonalVO.setUserId(2L);
+        quizMapper.insert(quizPersonalVO);
+    }
+
+
+    @Test
+    void delete() {
     }
 }

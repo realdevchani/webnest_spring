@@ -70,10 +70,41 @@
         JOIN TBL_QUIZ TBQ
             ON TQP.QUIZ_ID = TBQ.ID
     </select>
-
-    <insert id="insertQuizPersonal" parameterType="QuizPersonalVO">
-        UPDATE TBL_QUIZ_PERSONAL
-        SET QUIZ_PERSONAL_IS_BOOKMARK = #{isSolve}, QUIZ_PERSONAL_IS_SOLVE = #{isBookmark}
-        WHERE ID = #{id}
+<!--    QuizPersonal QRUD-->
+<!--    문제 제출시 풀었던 내역 저장-->
+    <insert id="insert" parameterType="QuizPersonalVO">
+        INSERT INTO TBL_QUIZ_PERSONAL(ID, QUIZ_ID, USER_ID)
+        VALUES(SEQ_QUIZ_PERSONAL.NEXTVAL, #{quizId}, #{userId})
     </insert>
+
+<!--    문제 해결 여부 반환-->
+    <update id="updateIsSolve" parameterType="QuizResponseDTO">
+        UPDATE TBL_QUIZ_PERSONAL
+        SET QUIZ_PERSONAL_IS_SOLVE = QUIZ_PERSONAL_IS_SOLVE + 1
+        WHERE QUIZ_ID = #{quizId} AND USER_ID = #{userId}
+    </update>
+
+<!--    북마크 여부 반환-->
+    <update id="updateIsBookmark" parameterType="QuizResponseDTO">
+        UPDATE TBL_QUIZ_PERSONAL
+        SET QUIZ_PERSONAL_IS_BOOKMARK = CASE WHEN QUIZ_PERSONAL_IS_BOOKMARK = 1 THEN 0 ELSE 1 END
+        WHERE QUIZ_ID = #{quizId} AND USER_ID = #{userId}
+    </update>
+
+<!--    퀴즈 해결여부,북마크 해당퀴즈정보 반환-->
+    <select id="selectQuizPersonalById" parameterType="QuizResponseDTO" resultType="QuizPersonalVO">
+        SELECT ID, QUIZ_PERSONAL_IS_SOLVE, QUIZ_PERSONAL_IS_BOOKMARK, QUIZ_ID, USER_ID
+        FROM TBL_QUIZ_PERSONAL
+        WHERE USER_ID = #{userId}
+    </select>
+
+<!--    회원탈퇴시 데이터삭제용-->
+    <delete id="delete" parameterType="Long">
+        DELETE
+        FROM TBL_QUIZ_PERSONAL
+        WHERE ID = #{id}
+    </delete>
+
+
+
 </mapper>
