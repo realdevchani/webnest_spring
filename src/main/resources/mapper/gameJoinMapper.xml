@@ -6,8 +6,10 @@
     <!-- 방에 있는 모든 유저 조회 -->
     <select id="selectAll" parameterType="Long" resultType="GameJoinDTO">
         SELECT
-        TBGJ.ID, TBGJ.GAME_JOIN_IS_HOST, TBGJ.USER_ID, TBGJ.GAME_ROOM_ID,TBGJ.GAME_JOIN_TEAMCOLOR, TBGJ.GAME_JOIN_MYTURN, TBGJ.GAME_JOIN_PROFILE_TEXT, TBGJ.GAME_JOIN_CREATE_AT,
-        TBU.USER_NAME, TBU.USER_BIRTHDAY, TBU.USER_EMAIL, TBU.USER_PHONE, TBU.USER_EXP, TBU.USER_THUMBNAIL_NAME, TBU.USER_THUMBNAIL_URL, TBU.USER_NICKNAME
+        TBGJ.ID, TBGJ.GAME_JOIN_IS_HOST, TBGJ.USER_ID, TBGJ.GAME_ROOM_ID,TBGJ.GAME_JOIN_TEAMCOLOR,
+        TBGJ.GAME_JOIN_MYTURN, TBGJ.GAME_JOIN_PROFILE_TEXT, TBGJ.GAME_JOIN_CREATE_AT,
+        TBU.USER_NAME, TBU.USER_BIRTHDAY, TBU.USER_EMAIL, TBU.USER_LEVEL, TBU.USER_PHONE, TBU.USER_EXP,
+        TBU.USER_THUMBNAIL_NAME, TBU.USER_THUMBNAIL_URL, TBU.USER_NICKNAME
         FROM TBL_GAME_JOIN TBGJ
         JOIN TBL_USER TBU
         ON TBGJ.USER_ID = TBU.ID AND TBGJ.GAME_ROOM_ID = #{gameRoomId}
@@ -27,20 +29,20 @@
     <update id="update" parameterType="GameJoinVO">
         UPDATE TBL_GAME_JOIN
         SET
-            GAME_JOIN_IS_HOST = ${gameJoinIsHost}
-            GAME_JOIN_TEAMCOLOR = ${gameJoinTeamcolor}
+        GAME_JOIN_IS_HOST = #{gameJoinIsHost},
+        GAME_JOIN_TEAMCOLOR = #{gameJoinTeamcolor},
+        GAME_JOIN_MYTURN = #{gameJoinMyturn},
+        GAME_JOIN_PROFILE_TEXT = #{gameJoinProfileText}
         WHERE
-            GAME_ROOM_ID = ${gameRoomId}
-                AND
-                    USER_ID = ${userId},
+        GAME_ROOM_ID = #{gameRoomId} AND USER_ID = #{userId}
     </update>
 
     <delete id="delete" parameterType="GameJoinVO">
         DELETE FROM TBL_GAME_JOIN
         WHERE
-            USER_ID = #{userId}
+        USER_ID = #{userId}
         AND
-            GAME_ROOM_ID = #{gameRoomId}
+        GAME_ROOM_ID = #{gameRoomId}
     </delete>
 
 </mapper>

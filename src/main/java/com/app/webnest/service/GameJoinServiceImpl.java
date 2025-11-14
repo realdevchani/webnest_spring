@@ -34,7 +34,7 @@ public class GameJoinServiceImpl implements GameJoinService {
 
     @Override
     public void update(GameJoinVO gameJoinVO){
-        gameJoinDAO.save(gameJoinVO);
+        gameJoinDAO.update(gameJoinVO);
     }
 
     @Override
