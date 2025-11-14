@@ -25,9 +25,43 @@
         <if test="page != null">
             OFFSET (#{page} - 1) * 10 ROWS FETCH NEXT 10 ROWS ONLY
         </if>
-
     </select>
-<!--    전체 퀴즈리스트-->
+<!--    북마크,해결여부 조인쿼리-->
+    <select id="selectQuizWithPersonal" parameterType="Map" resultType="QuizPersonalDTO">
+        SELECT
+            Q.ID,
+            Q.QUIZ_CATEGORY as quizCategory,
+            Q.QUIZ_DESCRIPTION as quizDescription,
+            Q.QUIZ_DIFFICULT as quizDifficult,
+            Q.QUIZ_EXP as quizExp,
+            Q.QUIZ_EXPECTATION as quizExpectation,
+            Q.QUIZ_TITLE as quizTitle,
+            Q.QUIZ_LANGUAGE as quizLanguage,
+            P.QUIZ_PERSONAL_IS_BOOKMARK AS quizPersonalIsBookmark,
+            P.QUIZ_PERSONAL_IS_SOLVE AS quizPersonalIsSolve,
+            P.USER_ID as userId,
+            P.QUIZ_ID as quizId
+        FROM TBL_QUIZ Q
+            LEFT JOIN TBL_QUIZ_PERSONAL P
+        ON Q.ID = P.QUIZ_ID AND P.USER_ID = #{userId}
+        WHERE 1 = 1
+        <if test="quizLanguage != null and quizLanguage != ''">
+            AND Q.QUIZ_LANGUAGE = #{quizLanguage}
+        </if>
+        <if test="quizDifficult != null and quizDifficult != ''">
+            AND Q.QUIZ_DIFFICULT = #{quizDifficult}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (Q.QUIZ_TITLE LIKE CONCAT('%', #{keyword}, '%') OR Q.QUIZ_DESCRIPTION LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY Q.ID ASC
+        <if test="page != null">
+            OFFSET (#{page} - 1) * 10 ROWS FETCH NEXT 10 ROWS ONLY
+        </if>
+    </select>
+
+
+    <!--    전체 퀴즈리스트-->
     <select id="selectAll" resultType="QuizVO">
         SELECT ID, QUIZ_TITLE, QUIZ_DESCRIPTION, QUIZ_CATEGORY, QUIZ_DIFFICULT, QUIZ_LANGUAGE, QUIZ_EXPECTATION, QUIZ_EXP
         FROM TBL_QUIZ
@@ -53,31 +87,35 @@
 <!--    퀴즈 조회(JOIN)-->
     <select id="selectQuizPersonalAll" resultType="QuizPersonalDTO">
         SELECT
-            TQP.ID,
-            TQP.QUIZ_PERSONAL_IS_SOLVE,
-            TQP.QUIZ_PERSONAL_IS_BOOKMARK,
-            TQP.USER_ID,
-            TQP.QUIZ_ID,
-            TBU.USER_NAME,
-            TBU.USER_NICKNAME,
-            TBU.USER_LEVEL,
-            TBU.USER_EXP,
-            TBU.USER_EMAIL,
-            TBQ.QUIZ_EXP
-        FROM TBL_QUIZ_PERSONAL TQP
-        JOIN TBL_USER TBU
-            ON TQP.USER_ID = TBU.ID
-        JOIN TBL_QUIZ TBQ
-            ON TQP.QUIZ_ID = TBQ.ID
+            TBQ.ID as quizId,
+            TBQ.QUIZ_TITLE as quizTitle,
+            TBQ.QUIZ_DESCRIPTION as quizDescription,
+            TBQ.QUIZ_CATEGORY as quizCategory,
+            TBQ.QUIZ_DIFFICULT as quizDifficult,
+            TBQ.QUIZ_LANGUAGE as quizLanguage,
+            TBQ.QUIZ_EXPECTATION as quizExpectation,
+            TBQ.QUIZ_EXP as quizExp,
+            TQP.ID as quizPersonalId,
+            TQP.QUIZ_PERSONAL_IS_SOLVE as quizPersonalIsSolve,
+            TQP.QUIZ_PERSONAL_IS_BOOKMARK as quizPersonalIsBookmark,
+            TQP.USER_ID as userId
+        FROM TBL_QUIZ TBQ
+        JOIN TBL_QUIZ_PERSONAL TQP
+        ON TBQ.ID = TQP.QUIZ_ID
     </select>
-<!--    QuizPersonal QRUD-->
+                                                <!--    QuizPersonal QRUD-->
 <!--    문제 제출시 풀었던 내역 저장-->
     <insert id="insert" parameterType="QuizPersonalVO">
-        INSERT INTO TBL_QUIZ_PERSONAL(ID, QUIZ_ID, USER_ID)
-        VALUES(SEQ_QUIZ_PERSONAL.NEXTVAL, #{quizId}, #{userId})
+        <selectKey keyProperty="id" resultType="long" order="BEFORE">
+            SELECT SEQ_QUIZ_PERSONAL.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TBL_QUIZ_PERSONAL (ID, QUIZ_ID, USER_ID, QUIZ_PERSONAL_IS_BOOKMARK, QUIZ_PERSONAL_IS_SOLVE)
+        VALUES (#{id}, #{quizId}, #{userId}, #{quizPersonalIsBookmark, jdbcType=INTEGER}, #{quizPersonalIsSolve, jdbcType=INTEGER})
     </insert>
 
-<!--    문제 해결 여부 반환-->
+
+
+    <!--    문제 해결 여부 반환-->
     <update id="updateIsSolve" parameterType="QuizResponseDTO">
         UPDATE TBL_QUIZ_PERSONAL
         SET QUIZ_PERSONAL_IS_SOLVE = QUIZ_PERSONAL_IS_SOLVE + 1
@@ -93,9 +131,14 @@
 
 <!--    퀴즈 해결여부,북마크 해당퀴즈정보 반환-->
     <select id="selectQuizPersonalById" parameterType="QuizResponseDTO" resultType="QuizPersonalVO">
-        SELECT ID, QUIZ_PERSONAL_IS_SOLVE, QUIZ_PERSONAL_IS_BOOKMARK, QUIZ_ID, USER_ID
+        SELECT
+            ID AS id,
+            COALESCE(QUIZ_PERSONAL_IS_SOLVE, 0) AS quizPersonalIsSolve,
+            COALESCE(QUIZ_PERSONAL_IS_BOOKMARK, 0) AS quizPersonalIsBookmark,
+            QUIZ_ID AS quizId,
+            USER_ID AS userId
         FROM TBL_QUIZ_PERSONAL
-        WHERE USER_ID = #{userId}
+        WHERE USER_ID = #{userId} AND QUIZ_ID = #{quizId}
     </select>
 
 <!--    회원탈퇴시 데이터삭제용-->
@@ -105,6 +148,45 @@
         WHERE ID = #{id}
     </delete>
 
+    <select id="selectByBookmarkIsSolve" parameterType="Long" resultType="QuizPersonalDTO">
+        SELECT
+            TBQ.ID as quizId,
+            TQP.ID as quizPersonalId,
+            TQP.QUIZ_PERSONAL_IS_SOLVE as quizPersonalIsSolve,
+            TQP.QUIZ_PERSONAL_IS_BOOKMARK as quizPersonalIsBookmark,
+            TQP.USER_ID as userId
+        FROM TBL_QUIZ TBQ
+        JOIN TBL_QUIZ_PERSONAL TQP
+        ON TBQ.ID = TQP.QUIZ_ID
+        WHERE TQP.USER_ID = #{userId}
+    </select>
 
+<!--    <select id="selectQuizByPersonal" parameterType="QuizResponseDTO"-->
 
+                                            <!--    퀴즈 제출내역 쿼리들-->
+
+    <insert id="insertQuizSubmit" parameterType="QuizResponseDTO">
+        INSERT INTO TBL_QUIZ_SUBMIT(ID, QUIZ_SUBMIT_CODE, QUIZ_SUBMIT_RESULT, USER_ID, QUIZ_ID)
+        VALUES(SEQ_QUIZ_SUBMIT.NEXTVAL, #{quizSubmitCode}, '0', #{userId}, #{quizId})
+    </insert>
+
+<!--        &#45;&#45; 한사람의 해당문제에 대한 제출내역-->
+    <select id="selectQuizSubmit" parameterType="QuizResponseDTO" resultType="QuizSubmitVO">
+        SELECT ID, QUIZ_SUBMIT_CODE, QUIZ_SUBMIT_RESULT, QUIZ_SUBMIT_CREATE_AT, QUIZ_SUBMIT_ERROR, USER_ID, QUIZ_ID
+        FROM TBL_QUIZ_SUBMIT
+        WHERE USER_ID = #{userId} AND QUIZ_ID = #{quizId}
+    </select>
+
+<!--        &#45;&#45; 한사람의 모든문제에 대한 제출내역들-->
+    <select id="selectQuizSubmitAll" parameterType="QuizResponseDTO" resultType="QuizSubmitVO">
+        SELECT ID, QUIZ_SUBMIT_CODE, QUIZ_SUBMIT_RESULT, QUIZ_SUBMIT_CREATE_AT, QUIZ_SUBMIT_ERROR, USER_ID, QUIZ_ID
+        FROM TBL_QUIZ_SUBMIT
+        WHERE USER_ID = #{userId}
+    </select>
+<!--            채점 후 정답이면 정답여부 업데이트-->
+    <update id="updateSubmitResult" parameterType="QuizResponseDTO">
+        UPDATE TBL_QUIZ_SUBMIT
+        SET QUIZ_SUBMIT_RESULT = QUIZ_SUBMIT_RESULT + 1
+        WHERE USER_ID = #{userId} AND QUIZ_ID = #{quizId}
+    </update>
 </mapper>

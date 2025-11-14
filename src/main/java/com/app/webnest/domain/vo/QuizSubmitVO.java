@@ -8,10 +8,10 @@ import java.util.Date;
 @Getter @Setter @ToString @EqualsAndHashCode(of = "id")
 public class QuizSubmitVO {
     private Long id;
-    private Long quizId;
-    private Long userId;
-    private String quizSubmitContent;
-    private boolean quizSubmitResult;
-    private String quizSubmitError; // erd이름 쓰기
+    private String quizSubmitCode;
     private Date quizSubmitCreateAt; // erd 제출시간 이름 바꾸기
+    private Integer quizSubmitResult;
+    private String quizSubmitError; // erd이름 쓰기
+    private Long userId;
+    private Long quizId;
 }

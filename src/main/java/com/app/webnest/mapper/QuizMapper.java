@@ -3,6 +3,7 @@ package com.app.webnest.mapper;
 import com.app.webnest.domain.dto.QuizPersonalDTO;
 import com.app.webnest.domain.dto.QuizResponseDTO;
 import com.app.webnest.domain.vo.QuizPersonalVO;
+import com.app.webnest.domain.vo.QuizSubmitVO;
 import com.app.webnest.domain.vo.QuizVO;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -27,6 +28,8 @@ public interface QuizMapper {
 //    결과값 응답
     public String selectExpectation(Long quizId);
 
+    public List<QuizPersonalDTO> selectQuizWithPersonal(HashMap<String, Object> params);
+
 //    퀴즈JOIN 정보
     public QuizPersonalDTO selectQuizPersonalAll();
 
@@ -44,5 +47,20 @@ public interface QuizMapper {
 
 //    회원탈퇴시 데이터삭제
     public void delete(Long id);
+
+    public <List>QuizPersonalDTO selectByBookmarkIsSolve(Long userId);
+
+//    퀴즈 제출내역 추가
+    public void insertQuizSubmit(QuizResponseDTO quizResponseDTO);
+
+//    한사람의 해당문제에 대한 제출내역
+    public QuizSubmitVO selectQuizSubmit(QuizResponseDTO quizResponseDTO);
+
+//    한사람의 모든문제에 대한 제출내역들
+    public List<QuizSubmitVO> selectQuizSubmitAll(QuizResponseDTO quizResponseDTO);
+
+//    채점 후 정답이면 정답여부 업데이트
+    public void updateSubmitResult(QuizResponseDTO quizResponseDTO);
+
 
 }

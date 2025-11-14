@@ -3,6 +3,7 @@ package com.app.webnest.repository;
 import com.app.webnest.domain.dto.QuizPersonalDTO;
 import com.app.webnest.domain.dto.QuizResponseDTO;
 import com.app.webnest.domain.vo.QuizPersonalVO;
+import com.app.webnest.domain.vo.QuizSubmitVO;
 import com.app.webnest.domain.vo.QuizVO;
 import com.app.webnest.mapper.QuizMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,8 @@ public class QuizDAO {
     public List<QuizVO> selectQuizAll(HashMap<String, Object> params){
         return quizMapper.selectAllFilter(params);
     }
+
+    public List<QuizPersonalDTO> selectQuizWithPersonal(HashMap<String, Object> params){ return quizMapper.selectQuizWithPersonal(params); }
 
 //    전체 문제리스트
     public List<QuizVO> selectAll(){ return  quizMapper.selectAll(); }
@@ -44,7 +47,7 @@ public class QuizDAO {
     public void insertQuizPersonal(QuizPersonalVO quizPersonalVO) { quizMapper.insert(quizPersonalVO); }
 
 //    해당퀴즈 북마크여부
-    public Integer updateBookmark(QuizResponseDTO quizResponseDTO){ return quizMapper.updateIsBookmark(quizResponseDTO); }
+    public Integer updateIsBookmark(QuizResponseDTO quizResponseDTO){ return quizMapper.updateIsBookmark(quizResponseDTO); }
 
 //    해당퀴즈 해결여부
     public Integer updateIsSolve(QuizResponseDTO quizResponseDTO){  return quizMapper.updateIsSolve(quizResponseDTO); }
@@ -52,4 +55,15 @@ public class QuizDAO {
 //    회원탈퇴시 데이터삭제
     public void deleteQuizPersonal(Long id){}
 
+    //    퀴즈 제출내역 추가
+    public void insertByQuizSubmit(QuizResponseDTO quizResponseDTO) { quizMapper.insertQuizSubmit(quizResponseDTO);}
+
+    //    한사람의 해당문제에 대한 제출내역
+    public QuizSubmitVO selectByQuizSubmit(QuizResponseDTO quizResponseDTO) { return quizMapper.selectQuizSubmit(quizResponseDTO); }
+
+    //    한사람의 모든문제에 대한 제출내역들
+    public List<QuizSubmitVO> selectByQuizSubmitAll(QuizResponseDTO quizResponseDTO) {return quizMapper.selectQuizSubmitAll(quizResponseDTO); }
+
+    //    채점 후 정답이면 정답여부 업데이트
+    public void updateBySubmitResult(QuizResponseDTO quizResponseDTO) { quizMapper.updateSubmitResult(quizResponseDTO); }
 }

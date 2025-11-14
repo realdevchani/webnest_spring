@@ -1,5 +1,6 @@
 package com.app.webnest.repository;
 
+import com.app.webnest.domain.dto.QuizResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,5 +48,36 @@ class QuizDAOTest {
 
     @Test
     void deleteQuizPersonalTest() {
+    }
+
+    @Test
+    void insertByQuizSubmitTest() {
+        QuizResponseDTO quizResponseDTO = new QuizResponseDTO();
+        quizResponseDTO.setQuizId(4L);
+        quizResponseDTO.setUserId(5L);
+        quizDAO.insertByQuizSubmit(quizResponseDTO);
+    }
+
+    @Test
+    void selectByQuizSubmitTest() {
+        QuizResponseDTO quizResponseDTO = new QuizResponseDTO();
+        quizResponseDTO.setQuizId(4L);
+        quizResponseDTO.setUserId(5L);
+        log.info("submit: {}",  quizDAO.selectByQuizSubmit(quizResponseDTO));
+    }
+
+    @Test
+    void selectByQuizSubmitAllTest() {
+        QuizResponseDTO quizResponseDTO = new QuizResponseDTO();
+        quizResponseDTO.setUserId(5L);
+        log.info("submitAll: {}", quizDAO.selectByQuizSubmitAll(quizResponseDTO));
+    }
+
+    @Test
+    void updateBySubmitResultTest() {
+        QuizResponseDTO quizResponseDTO = new QuizResponseDTO();
+        quizResponseDTO.setQuizId(4L);
+        quizResponseDTO.setUserId(5L);
+        quizDAO.updateBySubmitResult(quizResponseDTO);
     }
 }
