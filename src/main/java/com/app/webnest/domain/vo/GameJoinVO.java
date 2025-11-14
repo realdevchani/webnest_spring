@@ -12,7 +12,7 @@ public class GameJoinVO {
     private Long gameRoomId;
     private Integer gameJoinIsHost;
     private String gameJoinTeamcolor;
-    private Boolean gameJoinMyturn;
+    private Integer gameJoinMyturn;
     private String gameJoinProfileText;
     private LocalDateTime gameJoinCreateAt;
     private Integer gameJoinPosition;

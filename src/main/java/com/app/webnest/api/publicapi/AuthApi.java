@@ -4,6 +4,8 @@ import com.app.webnest.domain.dto.ApiResponseDTO;
 import com.app.webnest.domain.dto.TokenDTO;
 import com.app.webnest.domain.vo.UserVO;
 import com.app.webnest.service.AuthService;
+import com.app.webnest.service.SmsService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
@@ -22,6 +24,7 @@ public class AuthApi {
 
   private final AuthService authService;
   private final RedisTemplate redisTemplate;
+  private final SmsService smsService;
 
   // 로그인
   @PostMapping("login")
@@ -79,6 +82,22 @@ public class AuthApi {
     }
     return ResponseEntity.ok(ApiResponseDTO.of("임시 토큰 발급 완료", tokens));
   }
+
+    // 문자로 인증코드 전송
+    @PostMapping("/codes/sms")
+    public ResponseEntity<ApiResponseDTO> sendAuthentificationCodeBySms(String phoneNumber, HttpSession session) {
+        ApiResponseDTO response = smsService.sendAuthentificationCodeBySms(phoneNumber, session);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    // 인증코드 확인
+    @PostMapping("/codes/verify")
+    public ResponseEntity<ApiResponseDTO> verifyAuthentificationCode(String userAuthentificationCode, HttpSession session) {
+        Map<String, Boolean> verified = new HashMap();
+        String authentificationCode = (String)session.getAttribute("authentificationCode");
+        verified.put("verified", authentificationCode.equals(userAuthentificationCode));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("인증코드 확인 완료", verified));
+    }
 
 }
 

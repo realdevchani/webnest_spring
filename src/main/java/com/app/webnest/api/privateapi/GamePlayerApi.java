@@ -47,7 +47,7 @@ public class GamePlayerApi {
         gameJoinVO.setGameRoomId(roomId);
         gameJoinVO.setGameJoinIsHost(gameJoinDTO.isGameJoinIsHost() ? 1 : 0);
         gameJoinVO.setGameJoinTeamcolor(gameJoinDTO.getGameJoinTeamcolor());
-        gameJoinVO.setGameJoinMyturn(gameJoinDTO.isGameJoinMyturn());
+        gameJoinVO.setGameJoinMyturn(gameJoinDTO.isGameJoinMyturn() ? 1 : 0);
         gameJoinVO.setGameJoinProfileText(gameJoinDTO.getGameJoinProfileText());
 
         log.info("업데이트 값 : {}", gameJoinVO);
