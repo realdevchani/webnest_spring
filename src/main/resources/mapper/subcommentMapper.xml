@@ -9,6 +9,21 @@
         ON TBS.USER_ID = TBU.ID
         WHERE COMMENT_ID = #{commentId}
     </select>
+
+    <!-- 대댓글 작성 -->
+    <insert id="insert" parameterType="SubcommentVO">
+        <selectKey keyProperty="id" order="BEFORE" resultType="Long">
+            SELECT SEQ_SUBCOMMENT.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TBL_SUBCOMMENT(ID, SUBCOMMENT_DESCRIPTION, SUBCOMMENT_CREATE_AT, USER_ID, COMMENT_ID)
+        VALUES (#{id}, #{subcommentDescription}, #{subcommentCreateAt}, #{userId}, #{commentId})
+    </insert>
+
+    <!-- 대댓글 삭제 -->
+    <delete id="delete" parameterType="Long">
+        DELETE FROM TBL_SUBCOMMENT
+        WHERE ID = #{id}
+    </delete>
 </mapper>
 
 

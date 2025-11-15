@@ -2,13 +2,27 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.app.webnest.mapper.FollowMapper">
 
-    <insert id="insert " parameterType="FollowVO">
+    <!-- 팔로우 추가 (DTO 파라미터) -->
+    <insert id="insert" parameterType="FollowDTO">
         <selectKey keyProperty="id" order="BEFORE" resultType="Long">
             SELECT SEQ_FOLLOW.NEXTVAL FROM DUAL
         </selectKey>
         INSERT INTO TBL_FOLLOW(ID, USER_ID, FOLLOWER_ID, FOLLOW_CREATE_AT)
         VALUES (#{id}, #{userId}, #{followerId}, #{followCreateAt})
     </insert>
+
+    <!-- 팔로우 삭제 (id로) -->
+    <delete id="delete" parameterType="Long">
+        DELETE FROM TBL_FOLLOW
+        WHERE ID = #{id}
+    </delete>
+
+    <!-- 팔로우 삭제 (VO로) -->
+    <delete id="deleteByUserAndFollower" parameterType="FollowVO">
+        DELETE FROM TBL_FOLLOW
+        WHERE USER_ID = #{userId}
+        AND FOLLOWER_ID = #{followerId} AND ID = #{id}
+    </delete>
 
 <!--    <!— 특정 유저가 팔로잉하는 유저들 조회 —>-->
 <!--    <!— followerId가 팔로잉하는 사람이므로, followerId = #{userId}인 경우의 userId들 —>-->
@@ -28,7 +42,33 @@
         WHERE TF.FOLLOWER_ID = #{userId}
         ORDER BY TF.FOLLOW_CREATE_AT DESC
     </select>
-
+    <select id="selectFollowingWithPresence"
+            parameterType="long"
+            resultType="FollowDTO">
+        SELECT
+        U.ID                  USER_ID,
+        U.USER_NICKNAME       USER_NICKNAME,
+        U.USER_LEVEL          USER_LEVEL,
+        U.USER_THUMBNAIL_URL  USER_THUMBNAILURL,
+        CASE
+        WHEN MAX(CASE WHEN R.GAME_ROOM_IS_START = 1 THEN 1 ELSE 0 END) = 1 THEN '게임중'
+        WHEN MAX(CASE WHEN J.USER_ID IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN '접속중'
+        ELSE '자리비움'
+        END                   PRESENCE_STATUS,
+        F.FOLLOW_CREATE_AT    FOLLOW_CREATE_AT
+        FROM TBL_USER U
+        JOIN TBL_FOLLOW F
+        ON F.FOLLOWER_ID = #{userId}
+        AND F.USER_ID     = U.ID
+        LEFT JOIN TBL_GAME_JOIN J
+        ON J.USER_ID = U.ID
+        LEFT JOIN TBL_GAME_ROOM R
+        ON R.ID = J.GAME_ROOM_ID
+        GROUP BY
+        U.ID, U.USER_NICKNAME, U.USER_LEVEL, U.USER_THUMBNAIL_URL, F.FOLLOW_CREATE_AT
+        ORDER BY
+        F.FOLLOW_CREATE_AT DESC
+    </select>
 <!--    <!— 특정 유저를 팔로우하는 유저들 조회 (팔로워 리스트) —>-->
 <!--    <!— 유저 A를 팔로우하는 사람들 = userId = A인 경우의 followerId들 —>-->
     <select id="selectFollowersByUserId" parameterType="Long" resultType="FollowDTO">

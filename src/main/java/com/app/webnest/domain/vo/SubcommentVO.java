@@ -11,5 +11,5 @@ public class SubcommentVO {
     private Long userId;
     private Long commentId;
     private Date subcommentCreateAt;
-    private String subcommentContent;
+    private String subcommentDescription;
 }

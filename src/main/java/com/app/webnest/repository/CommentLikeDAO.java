@@ -1,5 +1,7 @@
 package com.app.webnest.repository;
 
+import com.app.webnest.domain.dto.CommentLikeDTO;
+import com.app.webnest.domain.vo.CommentLikeVO;
 import com.app.webnest.mapper.CommentLikeMapper;
 import com.app.webnest.mapper.CommentMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,22 @@ public class CommentLikeDAO {
 
     public int findCommentLike(Long commentId) {
         return commentLikeMapper.selectByPostIdcount(commentId);
+    }
+
+    // 좋아요 추가 (DTO 파라미터)
+    public Long save(CommentLikeDTO commentLikeDTO) {
+        commentLikeMapper.insert(commentLikeDTO);
+        return commentLikeDTO.getId();
+    }
+
+    // 좋아요 삭제 (id로)
+    public void remove(Long id) {
+        commentLikeMapper.delete(id);
+    }
+
+    // 좋아요 삭제 (VO로)
+    public void remove2(CommentLikeVO commentLikeVO) {
+        commentLikeMapper.deleteByUserAndComment(commentLikeVO);
     }
 //    int selectByPostIdcount (Long commentId);
 

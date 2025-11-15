@@ -9,6 +9,28 @@
         WHERE COMMENT_ID= #{commentId}
     </select>
 
+    <!-- 좋아요 추가 (DTO 파라미터) -->
+    <insert id="insert" parameterType="CommentLikeDTO">
+        <selectKey keyProperty="id" order="BEFORE" resultType="Long">
+            SELECT SEQ_COMMENT_LIKE.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TBL_COMMENT_LIKE (ID, USER_ID, COMMENT_ID)
+        VALUES (#{id}, #{userId}, #{commentId})
+    </insert>
+
+    <!-- 좋아요 삭제 (id로) -->
+    <delete id="delete" parameterType="Long">
+        DELETE FROM TBL_COMMENT_LIKE
+        WHERE ID = #{id}
+    </delete>
+
+    <!-- 좋아요 삭제 (VO로) -->
+    <delete id="deleteByUserAndComment" parameterType="CommentLikeVO">
+        DELETE FROM TBL_COMMENT_LIKE
+        WHERE USER_ID = #{userId}
+        AND COMMENT_ID = #{commentId} AND ID = #{id}
+    </delete>
+
 
 
 
@@ -25,8 +47,8 @@
 
     <!-- 좋아요 추가 -->
     <insert id="insertLike" parameterType="map">
-        INSERT INTO TBL_COMMENT_LIKE (ID, USER_ID, POST_ID, COMMENT_ID)
-        VALUES (SEQ_COMMENT_LIKE.NEXTVAL, #{userId}, #{postId}, #{commentId})
+        INSERT INTO TBL_COMMENT_LIKE (ID, USER_ID, COMMENT_ID)
+        VALUES (SEQ_COMMENT_LIKE.NEXTVAL, #{userId}, #{commentId})
     </insert>
 
     <!-- 좋아요 삭제 -->

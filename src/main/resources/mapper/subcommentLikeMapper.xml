@@ -31,7 +31,33 @@
         AND SUBCOMMENT_ID = #{subcommentId} AND ID = #{id}
     </delete>
 
+    <!-- Toggle 기능을 위한 쿼리들 -->
+    <!-- 좋아요 여부 확인 -->
+    <select id="isLiked" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM TBL_SUBCOMMENT_LIKE
+        WHERE SUBCOMMENT_ID = #{subcommentId}
+        AND USER_ID = #{userId}
+    </select>
 
+    <!-- 좋아요 추가 -->
+    <insert id="insertLike" parameterType="map">
+        INSERT INTO TBL_SUBCOMMENT_LIKE (ID, USER_ID, SUBCOMMENT_ID)
+        VALUES (SEQ_SUBCOMMENT_LIKE.NEXTVAL, #{userId}, #{subcommentId})
+    </insert>
 
+    <!-- 좋아요 삭제 -->
+    <delete id="deleteLike" parameterType="map">
+        DELETE FROM TBL_SUBCOMMENT_LIKE
+        WHERE SUBCOMMENT_ID = #{subcommentId}
+        AND USER_ID = #{userId}
+    </delete>
+
+    <!-- 좋아요 개수 조회 -->
+    <select id="countLike" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM TBL_SUBCOMMENT_LIKE
+        WHERE SUBCOMMENT_ID = #{subcommentId}
+    </select>
 
 </mapper>

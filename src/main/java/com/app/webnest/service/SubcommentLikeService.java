@@ -9,4 +9,5 @@ public interface SubcommentLikeService {
     public int getSubcommentLike(Long subcommentId);
     public void deleteSubcommentLike(Long id);
     public void deleteByUserAndSubcomment(SubcommentLikeVO subcommentLikeVO);
+    public Map<String, Object> toggleLike(Long subcommentId, Long userId);
 }

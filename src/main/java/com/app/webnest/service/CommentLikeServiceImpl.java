@@ -1,5 +1,7 @@
 package com.app.webnest.service;
 
+import com.app.webnest.domain.dto.CommentLikeDTO;
+import com.app.webnest.domain.vo.CommentLikeVO;
 import com.app.webnest.repository.CommentLikeDAO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,23 @@ public class CommentLikeServiceImpl implements CommentLikeService {
         return commentLikeDAO.findCommentLike(commentId);
     }
 
+    @Override
+    public Map<String, Long> save(CommentLikeDTO commentLikeDTO) {
+        Map<String, Long> response = new HashMap<>();
+        Long newCommentLikeId = commentLikeDAO.save(commentLikeDTO);
+        response.put("newCommentLikeId", newCommentLikeId);
+        return response;
+    }
+
+    @Override
+    public void deleteCommentLike(Long id) {
+        commentLikeDAO.remove(id);
+    }
+
+    @Override
+    public void deleteByUserAndComment(CommentLikeVO commentLikeVO) {
+        commentLikeDAO.remove2(commentLikeVO);
+    }
 
     @Override
     public Map<String, Object> toggleLike(Long commentId, Long postId, Long userId) {

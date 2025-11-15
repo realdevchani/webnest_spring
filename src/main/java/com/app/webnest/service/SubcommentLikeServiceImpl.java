@@ -38,6 +38,24 @@ public class SubcommentLikeServiceImpl implements SubcommentLikeService {
         subcommentLikeDAO.remove2(subcommentLikeVO);
     }
 
+    @Override
+    public Map<String, Object> toggleLike(Long subcommentId, Long userId) {
+        boolean isLiked = subcommentLikeDAO.isLiked(subcommentId, userId);
+
+        if (isLiked) {
+            subcommentLikeDAO.removeLike(subcommentId, userId);
+        } else {
+            subcommentLikeDAO.addLike(subcommentId, userId);
+        }
+
+        int likeCount = subcommentLikeDAO.countLike(subcommentId);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("liked", !isLiked);
+        result.put("likeCount", likeCount);
+
+        return result;
+    }
 
 }
 

@@ -6,6 +6,9 @@ import com.app.webnest.mapper.SubcommentLikeMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Repository
 @RequiredArgsConstructor
 public class SubcommentLikeDAO {
@@ -27,6 +30,32 @@ public class SubcommentLikeDAO {
 
     public void remove2(SubcommentLikeVO subcommentLikeVO) {
         subcommentLikeMapper.deleteByUserAndSubcomment(subcommentLikeVO);
+    }
+
+    // Toggle 기능을 위한 메서드들
+    public boolean isLiked(Long subcommentId, Long userId) {
+        Map<String, Long> map = new HashMap<>();
+        map.put("subcommentId", subcommentId);
+        map.put("userId", userId);
+        return subcommentLikeMapper.isLiked(map) > 0;
+    }
+
+    public void addLike(Long subcommentId, Long userId) {
+        Map<String, Long> map = new HashMap<>();
+        map.put("subcommentId", subcommentId);
+        map.put("userId", userId);
+        subcommentLikeMapper.insertLike(map);
+    }
+
+    public void removeLike(Long subcommentId, Long userId) {
+        Map<String, Long> map = new HashMap<>();
+        map.put("subcommentId", subcommentId);
+        map.put("userId", userId);
+        subcommentLikeMapper.deleteLike(map);
+    }
+
+    public int countLike(Long subcommentId) {
+        return subcommentLikeMapper.countLike(subcommentId);
     }
 
 }
