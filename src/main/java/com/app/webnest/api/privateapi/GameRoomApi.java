@@ -33,7 +33,7 @@ public class GameRoomApi {
     public ResponseEntity<ApiResponseDTO<Map<String, Object>>> getRooms(@RequestParam Long userId) {
         List<GameRoomDTO> rooms = gameRoomService.getRooms(userId);
         Integer winCount = winningStreakService.getWinCountByUserId(userId);
-        List<FollowDTO> following = followService.getFollowingByUserId(userId);
+        List<FollowDTO> following = followService.getFollowWithStatus(userId);
         UserResponseDTO myInfo = userService.getUserById(userId);
         Map<String, Object> response = new HashMap<>();
         response.put("roomList", rooms);

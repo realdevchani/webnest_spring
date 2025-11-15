@@ -65,5 +65,10 @@ public class FollowServiceImpl implements FollowService {
     public void deleteByUserAndFollower(FollowVO followVO) {
         followDAO.remove2(followVO);
     }
+
+    @Override
+    public List<FollowDTO>getFollowWithStatus(Long userId) {
+        return followDAO.selectFollowersByUserId(userId);
+    }
 }
 

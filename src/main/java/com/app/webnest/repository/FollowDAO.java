@@ -28,6 +28,9 @@ public class FollowDAO {
         followMapper.insert(followDTO);
         return followDTO.getId();
     }
+    public List<FollowDTO> selectFollowersByUserId(Long userId) {
+        return followMapper.selectFollowingWithPresence(userId);
+    }
 
     // 팔로우 삭제 (id로)
     public void remove(Long id) {
