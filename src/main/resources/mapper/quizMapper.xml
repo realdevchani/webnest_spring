@@ -198,6 +198,7 @@
         FROM TBL_QUIZ_SUBMIT
         WHERE USER_ID = #{userId}
     </select>
+
 <!--            채점 후 정답이면 정답여부 업데이트-->
     <update id="updateSubmitResult" parameterType="QuizResponseDTO">
         UPDATE TBL_QUIZ_SUBMIT

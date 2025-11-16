@@ -1,9 +1,6 @@
 package com.app.webnest.service;
 
-import com.app.webnest.domain.dto.FollowDTO;
-import com.app.webnest.domain.dto.PostLikeDTO;
-import com.app.webnest.domain.dto.PostResponseDTO;
-import com.app.webnest.domain.dto.UserResponseDTO;
+import com.app.webnest.domain.dto.*;
 import com.app.webnest.domain.vo.UserInsertSocialVO;
 import com.app.webnest.domain.vo.UserSocialVO;
 import com.app.webnest.domain.vo.UserVO;
@@ -190,6 +187,7 @@ public class UserServiceImpl implements UserService {
 
         // 문제
 //        quizDAO
+        //List<QuizResponseDTO> quizResponseDTOList = quizDAO.selectByQuizSubmitAll(id);
         // 팔로워
         List<FollowDTO> followers = followDAO.findFollowersByUserId(id);
 
