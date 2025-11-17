@@ -47,13 +47,6 @@ public class SubcommentLikeApi {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("대댓글 좋아요 삭제 성공"));
     }
 
-    @PostMapping("/toggle")
-    public ResponseEntity<ApiResponseDTO> toggle(
-            @RequestParam Long subcommentId,
-            @RequestParam Long userId
-    ) {
-        Map<String, Object> result = subcommentLikeService.toggleLike(subcommentId, userId);
-        return ResponseEntity.ok(ApiResponseDTO.of("대댓글 좋아요 토글 성공", result));
-    }
+
 
 }

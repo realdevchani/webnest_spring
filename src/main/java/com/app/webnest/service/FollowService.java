@@ -23,5 +23,8 @@ public interface FollowService {
     public void deleteByUserAndFollower(FollowVO followVO);
 
     public List<FollowDTO> getFollowWithStatus (Long userId);
+
+    // 팔로워 수 조회
+    public int getFollower(Long followerId);
 }
 

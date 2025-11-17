@@ -32,6 +32,7 @@
         <typeAlias type="com.app.webnest.domain.vo.UserVO" alias="UserVO" />
         <typeAlias type="com.app.webnest.domain.vo.WinningStreakVO" alias="WinningStreakVO" />
         <typeAlias type="com.app.webnest.domain.vo.TypingContentsVO" alias="TypingContentsVO" />
+        <typeAlias type="com.app.webnest.domain.vo.TypingRecordVO" alias="TypingRecordVO" />
 
 
         <!-- DTO -->
@@ -54,6 +55,8 @@
         <typeAlias type="com.app.webnest.domain.dto.QuizDTO" alias="QuizDTO" />
         <typeAlias type="com.app.webnest.domain.dto.QuizPersonalDTO" alias="QuizPersonalDTO" />
         <typeAlias type="com.app.webnest.domain.dto.QuizResponseDTO" alias="QuizResponseDTO" />
+        <typeAlias type="com.app.webnest.domain.dto.QuizPersonalResponseDTO" alias="QuizPersonalResponseDTO" />
+        <typeAlias type="com.app.webnest.domain.dto.QuizMyPageDTO" alias="QuizMyPageDTO" />
         <typeAlias type="com.app.webnest.domain.dto.QuizSubmitDTO" alias="QuizSubmitDTO" />
         <typeAlias type="com.app.webnest.domain.dto.SubcommentDTO" alias="SubcommentDTO" />
         <typeAlias type="com.app.webnest.domain.dto.SubcommentLikeDTO" alias="SubcommentLikeDTO" />
@@ -65,6 +68,7 @@
         <typeAlias type="com.app.webnest.domain.dto.PostSearchDTO" alias="PostSearchDTO" />
         <typeAlias type="com.app.webnest.domain.dto.QuizSearchDTO" alias="QuizSearchDTO" />
         <typeAlias type="com.app.webnest.domain.dto.TypingContentsDTO" alias="TypingContentsDTO" />
+        <typeAlias type="com.app.webnest.domain.dto.TypingRecordDTO" alias="TypingRecordDTO" />
     </typeAliases>
 
 </configuration>

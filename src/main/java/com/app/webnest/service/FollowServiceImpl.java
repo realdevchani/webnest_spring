@@ -70,5 +70,10 @@ public class FollowServiceImpl implements FollowService {
     public List<FollowDTO>getFollowWithStatus(Long userId) {
         return followDAO.selectFollowersByUserId(userId);
     }
+
+    @Override
+    public int getFollower(Long followerId) {
+        return followDAO.findFollower(followerId);
+    }
 }
 

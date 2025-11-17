@@ -1,6 +1,7 @@
 package com.app.webnest.service;
 
 import com.app.webnest.domain.dto.QuizPersonalDTO;
+import com.app.webnest.domain.dto.QuizPersonalResponseDTO;
 import com.app.webnest.domain.dto.QuizResponseDTO;
 import com.app.webnest.domain.vo.QuizPersonalVO;
 import com.app.webnest.domain.vo.QuizSubmitVO;
@@ -71,7 +72,13 @@ public class QuizServiceImpl implements QuizService {
         return quizDAO.updateIsSolve(quizResponseDTO);
     }
     @Override
-    public QuizPersonalVO findQuizPersonalById(QuizResponseDTO quizResponseDTO) { return quizDAO.selectQuizPersonalById(quizResponseDTO); }
+    public Long findQuizPersonalById(QuizResponseDTO quizResponseDTO) { return quizDAO.selectQuizPersonalById(quizResponseDTO); }
+
+    @Override
+    public QuizPersonalVO findAllQuizPersonalById(Long id) { return quizDAO.selectAllQuizPersonalById(id); }
+
+    @Override
+    public List<QuizPersonalResponseDTO> findByIsBookmarkIsSolve(Long userId) { return quizDAO.selectByBookmarkIsSolve(userId); }
 
     @Override
     public void saveQuizPersonal(QuizPersonalVO quizPersonalVO) { quizDAO.insertQuizPersonal(quizPersonalVO); }

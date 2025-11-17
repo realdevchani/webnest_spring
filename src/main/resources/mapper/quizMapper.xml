@@ -37,8 +37,8 @@
             Q.QUIZ_EXPECTATION AS quizExpectation,
             Q.QUIZ_EXP AS quizExp,
             P.quizPersonalId AS quizPersonalId,
-            COALESCE(P.quizPersonalIsSolve, 0) AS quizPersonalIsSolve,
-            COALESCE(P.quizPersonalIsBookmark, 0) AS quizPersonalIsBookmark,
+            COALESCE(P.QUIZ_PERSONAL_IS_SOLVE, 0) AS quizPersonalIsSolve,
+            COALESCE(P.QUIZ_PERSONAL_IS_BOOKMARK, 0) AS quizPersonalIsBookmark,
             P.userId AS userId,
             P.quizId AS quizId
         FROM TBL_QUIZ Q
@@ -47,9 +47,10 @@
             QUIZ_ID AS quizId,
             USER_ID AS userId,
             MAX(ID) AS quizPersonalId,
-            MAX(QUIZ_PERSONAL_IS_BOOKMARK) AS quizPersonalIsBookmark,
-            MAX(QUIZ_PERSONAL_IS_SOLVE) AS quizPersonalIsSolve
-            FROM TBL_QUIZ_PERSONAL
+            MAX(QUIZ_PERSONAL_IS_BOOKMARK) AS QUIZ_PERSONAL_IS_BOOKMARK,
+            MAX(QUIZ_PERSONAL_IS_SOLVE) AS QUIZ_PERSONAL_IS_SOLVE
+
+        FROM TBL_QUIZ_PERSONAL
             WHERE USER_ID = #{userId}
             GROUP BY QUIZ_ID, USER_ID
         ) P
@@ -62,10 +63,10 @@
             AND Q.QUIZ_DIFFICULT = #{quizDifficult}
         </if>
         <if test="quizPersonalIsSolve != null and quizPersonalIsSolve != ''">
-            AND P.QUIZ_PERSONAL_IS_SOLVE = #{quizPersonalIsSolve}
+            AND COALESCE(P.QUIZ_PERSONAL_IS_SOLVE, 0) = #{quizPersonalIsSolve}
         </if>
         <if test="keyword != null and keyword != ''">
-            AND (Q.QUIZ_TITLE LIKE CONCAT('%', #{keyword}, '%') OR Q.QUIZ_DESCRIPTION LIKE CONCAT('%', #{keyword}, '%'))
+            AND (Q.QUIZ_TITLE LIKE '%' || #{keyword} || '%' OR Q.QUIZ_DESCRIPTION LIKE '%' || #{keyword} || '%')
         </if>
         ORDER BY Q.ID ASC
         <if test="offset != null and pageSize != null">
@@ -145,15 +146,15 @@
     </update>
 
 <!--    퀴즈 해결여부,북마크 해당퀴즈정보 반환-->
-    <select id="selectQuizPersonalById" parameterType="QuizResponseDTO" resultType="QuizPersonalVO">
-        SELECT
-            ID AS id,
-            COALESCE(QUIZ_PERSONAL_IS_SOLVE, 0) AS quizPersonalIsSolve,
-            COALESCE(QUIZ_PERSONAL_IS_BOOKMARK, 0) AS quizPersonalIsBookmark,
-            QUIZ_ID AS quizId,
-            USER_ID AS userId
+    <select id="selectQuizPersonalById" parameterType="QuizResponseDTO" resultType="Long">
+        SELECT ID as id
         FROM TBL_QUIZ_PERSONAL
         WHERE USER_ID = #{userId} AND QUIZ_ID = #{quizId}
+    </select>
+    <select id="selectAllQuizPersonalById" parameterType="Long" resultType="QuizPersonalVO">
+        SELECT ID as id, QUIZ_PERSONAL_IS_SOLVE, QUIZ_PERSONAL_IS_BOOKMARK, QUIZ_ID, USER_ID
+        FROM TBL_QUIZ_PERSONAL
+        WHERE ID = #{id}
     </select>
 
 <!--    회원탈퇴시 데이터삭제용-->
@@ -163,7 +164,7 @@
         WHERE ID = #{id}
     </delete>
 
-    <select id="selectByBookmarkIsSolve" parameterType="Long" resultType="QuizPersonalDTO">
+    <select id="selectByBookmarkIsSolve" parameterType="Long" resultType="QuizPersonalResponseDTO">
         SELECT
             TBQ.ID as quizId,
             TQP.ID as quizPersonalId,
@@ -198,10 +199,43 @@
         FROM TBL_QUIZ_SUBMIT
         WHERE USER_ID = #{userId}
     </select>
+
 <!--            채점 후 정답이면 정답여부 업데이트-->
     <update id="updateSubmitResult" parameterType="QuizResponseDTO">
         UPDATE TBL_QUIZ_SUBMIT
         SET QUIZ_SUBMIT_RESULT = QUIZ_SUBMIT_RESULT + 1
         WHERE USER_ID = #{userId} AND QUIZ_ID = #{quizId}
     </update>
+
+
+<!--                         마이페이지용 XML                       -->
+    <select id="selectQuizIsSolveMyData" parameterType="Long" resultType="QuizMyPageDTO">
+        SELECT
+            TBQ.QUIZ_TITLE as quizTitle,
+            TBQ.QUIZ_DESCRIPTION as quizDescription,
+            TBQ.QUIZ_CATEGORY as quizCategory,
+            TBQ.QUIZ_EXPECTATION as quizExpectation,
+            TBQ.QUIZ_EXP as quizExp,
+            TBQ.QUIZ_DIFFICULT as quizDifficult,
+            TBQ.QUIZ_LANGUAGE as quizLanguage,
+            TBP.USER_ID as userId
+        FROM TBL_QUIZ_PERSONAL TBP
+        JOIN TBL_USER TBU
+            ON TBP.USER_ID = TBU.ID
+        JOIN TBL_QUIZ TBQ
+            ON TBP.QUIZ_ID = TBQ.ID AND TBU.ID = TBP.USER_ID
+        WHERE TBP.QUIZ_PERSONAL_IS_SOLVE > 0 AND TBU.ID = #{id}
+    </select>
+
+    <select id="selectQuizIsSolveForLanguageMyData" parameterType="Long" resultType="QuizMyPageDTO">
+        SELECT
+            TBQ.QUIZ_LANGUAGE as quizLanguage,
+            TBP.USER_ID as userId
+        FROM TBL_QUIZ_PERSONAL TBP
+        JOIN TBL_QUIZ TBQ
+            ON TBP.QUIZ_ID = TBQ.ID
+        JOIN TBL_USER TBU
+            ON TBP.QUIZ_ID = TBQ.ID AND TBU.ID = TBP.USER_ID
+        WHERE TBP.QUIZ_PERSONAL_IS_SOLVE > 0 AND TBU.ID = #{id}
+    </select>
 </mapper>

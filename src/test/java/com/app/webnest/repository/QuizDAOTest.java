@@ -80,4 +80,9 @@ class QuizDAOTest {
         quizResponseDTO.setUserId(5L);
         quizDAO.updateBySubmitResult(quizResponseDTO);
     }
+
+    @Test
+    void selectByIdQuizIsSolveMyData() {
+        log.info("selectByIdQuizIsSolveMyDataTest", quizDAO.selectByIdQuizIsSolveMyData(1L));
+    }
 }

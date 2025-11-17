@@ -9,16 +9,16 @@ import java.util.Map;
 @Mapper
 public interface CommentLikeMapper {
     // 게시글 상세에서 좋아요 개수
-    int selectByPostIdcount (Long commentId);
+    public int selectByPostIdcount (Long commentId);
 
     // 좋아요 추가 (DTO 파라미터)
-    void insert(CommentLikeDTO commentLikeDTO);
+    public void insert(CommentLikeDTO commentLikeDTO);
 
     // 좋아요 삭제 (id로)
-    void delete(Long id);
+    public void delete(Long id);
 
     // 좋아요 삭제 (VO로)
-    void deleteByUserAndComment(CommentLikeVO commentLikeVO);
+    public void deleteByUserAndComment(CommentLikeVO commentLikeVO);
 
     public int isLiked(Map<String, Long> map);
 

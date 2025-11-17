@@ -15,7 +15,7 @@ import java.util.List;
 public class TypingContentsServiceImpl implements TypingContentsService {
     private final TypingContentsDAO typingContentsDAO;
 
-    // 언어별 리스트
+    // 긴글 언어별 리스트
     @Override
     public List<TypingContentsDTO> getLongContentsByLanguage(String language) {
         return typingContentsDAO.findLongContentsByLanguage(language);
@@ -31,5 +31,11 @@ public class TypingContentsServiceImpl implements TypingContentsService {
         }
 
         return content;
+    }
+
+    //짧은글 연습
+    // 언어별 짧은글 리스트
+    public List<TypingContentsDTO> findShortContentsByLanguage(String language) {
+        return typingContentsDAO.findShortContentsByLanguage(language);
     }
 }

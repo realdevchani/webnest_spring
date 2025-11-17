@@ -11,4 +11,7 @@ public interface TypingContentsService {
 
     // 특정 콘텐츠 상세
     TypingContentsDTO getContent(Long id);
+
+    //짧은글
+    public List<TypingContentsDTO> findShortContentsByLanguage(String language);
 }

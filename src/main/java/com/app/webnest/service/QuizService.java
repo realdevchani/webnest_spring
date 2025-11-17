@@ -1,6 +1,7 @@
 package com.app.webnest.service;
 
 import com.app.webnest.domain.dto.QuizPersonalDTO;
+import com.app.webnest.domain.dto.QuizPersonalResponseDTO;
 import com.app.webnest.domain.dto.QuizResponseDTO;
 import com.app.webnest.domain.vo.QuizPersonalVO;
 import com.app.webnest.domain.vo.QuizSubmitVO;
@@ -30,9 +31,12 @@ public interface QuizService {
 //    결과 기대값조회
     public String findQuizExpectationById(Long id);
 
+    public List<QuizPersonalResponseDTO> findByIsBookmarkIsSolve(Long userId);
 
 //    해당퀴즈에 대한 personal정보
-    public QuizPersonalVO findQuizPersonalById(QuizResponseDTO quizResponseDTO);
+    public Long findQuizPersonalById(QuizResponseDTO quizResponseDTO);
+
+    public QuizPersonalVO findAllQuizPersonalById(Long id);
 
     //    퀴즈 풀었던 내역저장
     public void saveQuizPersonal(QuizPersonalVO quizPersonalVO);

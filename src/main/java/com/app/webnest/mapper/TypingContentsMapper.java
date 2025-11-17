@@ -7,7 +7,12 @@ import java.util.List;
 
 @Mapper
 public interface TypingContentsMapper {
+    //긴글연습
     public List<TypingContentsDTO> findLongContentsByLanguage(String language);
 
+    //상세조회
     public TypingContentsDTO findContentById(Long id);
+
+    //짧은글연습
+    public List<TypingContentsDTO> findShortContentsByLanguage(String language);
 }

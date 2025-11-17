@@ -73,5 +73,17 @@ public class FollowApi {
         followService.deleteByUserAndFollower(followVO);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("팔로우 삭제 성공"));
     }
+
+    /**
+     * 팔로워 수 조회
+     * GET /private/follows/{followerId}/count
+     */
+    @GetMapping("/{followerId}/count")
+    public ResponseEntity<ApiResponseDTO> getFollowerCount(@PathVariable("followerId") Long followerId) {
+        int followerCount = followService.getFollower(followerId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponseDTO.of("팔로워 수 조회 성공", followerCount));
+    }
 }
 

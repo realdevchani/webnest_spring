@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.app.webnest.mapper.PostLikeMapper">
+
+
+
+    <insert id="insert" parameterType="PostLikeVO">
+        <selectKey keyProperty="id" order="BEFORE" resultType="Long">
+            SELECT SEQ_POST_LIKE.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TBL_POST_LIKE(ID,USER_ID, POST_ID)
+        VALUES (#{id}, #{userId}, #{postId})
+    </insert>
+
+    <select id="selectByPostIdcount" parameterType="Long" resultType="_int" >
+        SELECT COUNT(POST_ID)
+        FROM TBL_POST_LIKE
+        WHERE POST_ID= #{postId}
+    </select>
+
+
+    <delete id="delete" parameterType="Long">
+        DELETE FROM TBL_POST_LIKE
+        WHERE ID = #{id}
+    </delete>
+
+<!--    -->
+    <delete id="deleteByUserAndPost" parameterType="PostLikeVO">
+        DELETE FROM TBL_POST_LIKE
+        WHERE USER_ID = #{userId}
+        AND POST_ID = #{postId} AND ID = #{id}
+    </delete>
+
+    <!-- 마이페이지 - 사용자가 좋아요를 누른 게시물 문제 둥지 목록 조회 -->
+    <select id="selectLikedQuestionPostsByUserId" parameterType="Long" resultType="PostLikeDTO">
+        SELECT
+        TBPL.ID,
+        TBPL.USER_ID,
+        TBPL.POST_ID,
+        TBP.POST_TITLE,
+        TBP.POST_CONTENT,
+        TBP.POST_VIEW_COUNT,
+        TBP.POST_TYPE,
+        TBP.POST_CREATE_AT,
+        TBU.USER_NICKNAME,
+        TBU.USER_THUMBNAIL_URL,
+        (SELECT COUNT(*) FROM TBL_COMMENT TBC WHERE TBC.POST_ID = TBP.ID) AS COMMENT_COUNT
+        FROM TBL_POST TBP
+        JOIN TBL_POST_LIKE TBPL ON TBP.ID = TBPL.POST_ID
+        JOIN TBL_USER TBU ON TBP.USER_ID = TBU.ID
+        WHERE TBPL.USER_ID = #{userId}
+        AND TBP.POST_TYPE != 'OPEN'
+        ORDER BY TBPL.ID DESC
+    </select>
+
+    <!-- 마이페이지 - 사용자가 좋아요를 누른 OPEN 목록 조회 -->
+    <select id="selectLikedOpenPostsByUserId" parameterType="Long" resultType="PostLikeDTO">
+        SELECT
+        TBPL.ID,
+        TBPL.USER_ID,
+        TBPL.POST_ID,
+        TBP.POST_TITLE,
+        TBP.POST_CONTENT,
+        TBP.POST_VIEW_COUNT,
+        TBP.POST_TYPE,
+        TBP.POST_CREATE_AT,
+        TBU.USER_NICKNAME,
+        TBU.USER_THUMBNAIL_URL,
+        (SELECT COUNT(*) FROM TBL_COMMENT TBC WHERE TBC.POST_ID = TBP.ID) AS COMMENT_COUNT
+        FROM TBL_POST TBP
+        JOIN TBL_POST_LIKE TBPL ON TBP.ID = TBPL.POST_ID
+        JOIN TBL_USER TBU ON TBP.USER_ID = TBU.ID
+        WHERE TBPL.USER_ID = #{userId}
+        AND TBP.POST_TYPE = 'OPEN'
+        ORDER BY TBPL.ID DESC
+    </select>
+
+    <!-- 마이페이지 - 사용자가 좋아요를 누른 모든 게시물 목록 조회 -->
+
+
+</mapper>
+

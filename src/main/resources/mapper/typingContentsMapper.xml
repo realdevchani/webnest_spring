@@ -25,6 +25,18 @@
         AND TYPING_CONTENTS_LANGUAGE = #{language}
         ORDER BY ID ASC
     </select>
+    <select id="findShortContentsByLanguage" parameterType="string" resultType="com.app.webnest.domain.dto.TypingContentsDTO">
+        SELECT
+        ID,
+        TYPING_CONTENTS_TITLE AS title,
+        TYPING_CONTENTS_SUBJECT AS subject,
+        TYPING_CONTENTS_TYPE AS type,
+        TYPING_CONTENTS_LANGUAGE AS language
+        FROM TBL_TYPING_CONTENTS
+        WHERE TYPING_CONTENTS_TYPE = '짧은글연습'
+        AND TYPING_CONTENTS_LANGUAGE = #{language}
+        ORDER BY ID ASC
+    </select>
 
     <!-- 2) ID 기준으로 콘텐츠 전체 불러오기 -->
     <select id="findContentById" parameterType="long" resultType="com.app.webnest.domain.dto.TypingContentsDTO">

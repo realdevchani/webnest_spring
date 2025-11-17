@@ -21,4 +21,9 @@ public class TypingContentsDAO {
     public TypingContentsDTO findById(Long id) {
         return typingContentsMapper.findContentById(id);
     }
+
+    // 짧은글 리스트(언어별)
+    public List<TypingContentsDTO> findShortContentsByLanguage(String language){
+        return typingContentsMapper.findShortContentsByLanguage(language);
+    };
 }

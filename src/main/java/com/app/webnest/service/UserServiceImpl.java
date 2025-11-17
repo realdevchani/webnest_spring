@@ -1,9 +1,6 @@
 package com.app.webnest.service;
 
-import com.app.webnest.domain.dto.FollowDTO;
-import com.app.webnest.domain.dto.GameJoinDTO;
-import com.app.webnest.domain.dto.PostResponseDTO;
-import com.app.webnest.domain.dto.UserResponseDTO;
+import com.app.webnest.domain.dto.*;
 import com.app.webnest.domain.vo.UserInsertSocialVO;
 import com.app.webnest.domain.vo.UserSocialVO;
 import com.app.webnest.domain.vo.UserVO;
@@ -32,10 +29,9 @@ public class UserServiceImpl implements UserService {
   private final PostDAO postDAO;
   private final QuizDAO quizDAO;
   private final FollowDAO followDAO;
+    private final PostLikeDAO postLikeDAO;
 
-
-
-  // 이메일 중복 조회
+    // 이메일 중복 조회
   @Override
   public boolean existsByUserEmail(String userEmail) {
     return userDAO.existsByUserEmail(userEmail);
@@ -182,8 +178,15 @@ public class UserServiceImpl implements UserService {
         List<PostResponseDTO> openPosts = postDAO.findOpenPostsByUserId(id);
         // 게시글 - 문제둥지
         List<PostResponseDTO> questionPosts = postDAO.findQuestionPostsByUserId(id);
+
+        // 좋아요 누른 - 열린 둥지
+        List<PostLikeDTO> openLikePosts = postLikeDAO.findLikedOpenPostsByUserId(id);
+        // 좋아요 누른 - 문제 둥지
+        List<PostLikeDTO> questionLikePosts = postLikeDAO.findLikedQuestionPostsByUserId(id);
+
         // 문제
 //        quizDAO
+        //List<QuizResponseDTO> quizResponseDTOList = quizDAO.selectByQuizSubmitAll(id);
         // 팔로워
         List<FollowDTO> followers = followDAO.findFollowersByUserId(id);
 
@@ -193,6 +196,8 @@ public class UserServiceImpl implements UserService {
         // 타이핑
         myDatas.put("openPosts", openPosts);
         myDatas.put("questionPosts", questionPosts);
+        myDatas.put("openLikePosts", openLikePosts);
+        myDatas.put("questionLikePosts", questionLikePosts);
         myDatas.put("followers", followers);
         myDatas.put("following", following);
 

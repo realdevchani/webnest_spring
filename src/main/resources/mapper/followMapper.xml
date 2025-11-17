@@ -87,7 +87,11 @@
         ORDER BY TF.FOLLOW_CREATE_AT DESC
     </select>
 
-
+    <select id="selectFollower" parameterType="Long" resultType="_int" >
+        SELECT COUNT(FOLLOWER_ID)
+        FROM TBL_FOLLOW
+        WHERE FOLLOWER_ID= #{followerId}
+    </select>
 
 </mapper>
 

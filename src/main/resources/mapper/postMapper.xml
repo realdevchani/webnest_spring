@@ -119,16 +119,6 @@
     </update>
 
 
-<!--    좋아요-->
-<!--        <select id="selectPostLikeCount" parameterType="long" resultType="int">-->
-<!--            SELECT COUNT(*)-->
-<!--            FROM TBL_POST_LIKE-->
-<!--            WHERE POST_ID = #{postId}-->
-<!--        </select>-->
-
-
-
-
 
 <!---->
 <!---->

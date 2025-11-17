@@ -1,9 +1,6 @@
 package com.app.webnest.api.privateapi;
 
-import com.app.webnest.domain.dto.ApiResponseDTO;
-import com.app.webnest.domain.dto.QuizPersonalDTO;
-import com.app.webnest.domain.dto.QuizResponseDTO;
-import com.app.webnest.domain.dto.UserResponseDTO;
+import com.app.webnest.domain.dto.*;
 import com.app.webnest.domain.vo.QuizPersonalVO;
 import com.app.webnest.domain.vo.QuizSubmitVO;
 import com.app.webnest.domain.vo.QuizVO;
@@ -120,23 +117,34 @@ public class QuizApi {
         Long userId = quizResponseDTO.getUserId();
 
         QuizResponseDTO dto = new QuizResponseDTO();
+        log.info("userID: {}", userId);
+        log.info("quizId: {}", quizId);
         dto.setUserId(userId);
         dto.setQuizId(quizId);
+//        북마크 눌렀을때 퍼스널테이블에 이미 해당유저가 있다면 북마크만 업데이트
+        Long findPersonId = quizService.findQuizPersonalById(dto);
+        if(findPersonId != null){
             quizService.isBookmarked(dto);
-            quizService.isSolved(dto);
+            List<QuizPersonalResponseDTO> existQuizPersonal = quizService.findByIsBookmarkIsSolve(userId);
+            data.put("quizPersonal", existQuizPersonal);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("응답 성공", data));
+        }
+        log.info("findPersonId, {}",findPersonId);
+            // 북마크를 눌렀을때 퍼스널테이블에 유저가없다면 새로생성하고 추가
+        Long quizPersonalVO = quizService.findQuizPersonalById(dto);
+        if (quizPersonalVO == null) {
+            QuizPersonalVO newPersonalVO = new QuizPersonalVO();
+            newPersonalVO.setUserId(userId);
+            newPersonalVO.setQuizId(quizId);
+            newPersonalVO.setQuizPersonalIsBookmark(1);
+            newPersonalVO.setQuizPersonalIsSolve(0);
+            quizService.saveQuizPersonal(newPersonalVO);
+            log.info("SavedgetId: {}",newPersonalVO.getId());
+        }
 
-            // 최신 상태 조회
-            QuizPersonalVO quizPersonalVO = quizService.findQuizPersonalById(dto);
-            if (quizPersonalVO == null) {
-                quizPersonalVO = new QuizPersonalVO();
-                quizPersonalVO.setUserId(userId);
-                quizPersonalVO.setQuizId(quizId);
-                quizPersonalVO.setQuizPersonalIsBookmark(0);
-                quizPersonalVO.setQuizPersonalIsSolve(0);
-                quizService.saveQuizPersonal(quizPersonalVO);
-            }
-
-            data.put("quizPersonal", quizPersonalVO);
+        List<QuizPersonalResponseDTO> findQuizPersonalInfo = quizService.findByIsBookmarkIsSolve(userId);
+        log.info("findQuizPersonalInfo, {}",findQuizPersonalInfo);
+        data.put("quizPersonal", findQuizPersonalInfo);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("응답 성공", data));
     }
@@ -167,6 +175,7 @@ public class QuizApi {
 //    서브밋 테이블에 사용자의 코드,유저아이디, 퀴즈아이디, 제출시간, 디폴트에러
     @PostMapping("/quiz/js-success")
     public ResponseEntity<ApiResponseDTO<HashMap>> getJsQuizSuccess(@RequestBody QuizResponseDTO quizResponseDTO) {
+        try {
         QuizResponseDTO dto = new QuizResponseDTO();
         HashMap<String, Object> submitDatas = new HashMap<>();
         Long findUserId = quizResponseDTO.getUserId();
@@ -191,12 +200,24 @@ public class QuizApi {
         quizService.saveQuizSubmit(dto);
         quizService.modifySubmitResult(dto);
 //        퍼스널 테이블에 추가
-        quizService.saveQuizPersonal(findQuizPersonalVO);
-        Integer isSolved = quizService.isSolved(dto);
-        userService.gainExp(findUserId, findQuizExp);
-
+        Long findPersonalId = quizService.findQuizPersonalById(dto);
+        QuizPersonalVO findAllPersonalVO = quizService.findAllQuizPersonalById(findPersonalId);
+        if(findPersonalId == null) {
+            quizService.saveQuizPersonal(findQuizPersonalVO);
+            quizService.isSolved(dto);
+            userService.gainExp(findUserId, findQuizExp);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",submitDatas));
+        }
+        if(findAllPersonalVO != null){
+            quizService.isSolved(dto);
+            userService.gainExp(findUserId, findQuizExp);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",submitDatas));
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",submitDatas));
+        } catch (Exception ex) {
+            throw ex; // 다시 던져서 원래 동작 유지
+        }
     }
 
 //    자바실행
@@ -242,13 +263,13 @@ public class QuizApi {
 
         QuizResponseDTO dto = new QuizResponseDTO();
         Long quizId = quizResponseDTO.getQuizId();
-        Long userId = quizResponseDTO.getUserId();
+        Long findUserId = quizResponseDTO.getUserId();
         dto.setQuizId(quizId);
-        dto.setUserId(userId);
+        dto.setUserId(findUserId);
         dto.setQuizSubmitCode(code);
 
         QuizPersonalVO findQuizPersonalVO = new QuizPersonalVO();
-        findQuizPersonalVO.setUserId(userId);
+        findQuizPersonalVO.setUserId(findUserId);
         findQuizPersonalVO.setQuizId(quizId);
 
         QuizVO findQuiz = quizService.findQuizById(quizId);
@@ -264,11 +285,23 @@ public class QuizApi {
         if(!result.equals(findQuizExpectation)){
             throw new QuizException("기댓값과 일치하지 않습니다. 다시 시도해보세요!");
         }
+        //        서브밋 테이블에 추가해야함
         quizService.saveQuizSubmit(dto);
         quizService.modifySubmitResult(dto);
-        quizService.saveQuizPersonal(findQuizPersonalVO);
-        quizService.isSolved(dto);
-        userService.gainExp(userId, findQuizExp);
+//        퍼스널 테이블에 추가
+        Long findPersonalId = quizService.findQuizPersonalById(dto);
+        QuizPersonalVO findAllPersonalVO = quizService.findAllQuizPersonalById(findPersonalId);
+        if(findPersonalId == null) {
+            quizService.saveQuizPersonal(findQuizPersonalVO);
+            quizService.isSolved(dto);
+            userService.gainExp(findUserId, findQuizExp);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",data));
+        }
+        if(findAllPersonalVO != null){
+            quizService.isSolved(dto);
+            userService.gainExp(findUserId, findQuizExp);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",data));
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!", data));
     }
@@ -277,6 +310,7 @@ public class QuizApi {
     public ResponseEntity<ApiResponseDTO<HashMap>> getSqlSuccess(@RequestBody QuizResponseDTO quizResponseDTO ) {
         HashMap<String, Object> data = new HashMap<>();
         QuizResponseDTO dto = new QuizResponseDTO();
+
         Long findQuizId = quizResponseDTO.getQuizId();
         Long findUserId = quizResponseDTO.getUserId();
         String findCode = quizResponseDTO.getQuizSubmitCode();
@@ -289,22 +323,36 @@ public class QuizApi {
         findQuizPersonalVO.setUserId(findUserId);
         findQuizPersonalVO.setQuizId(findQuizId);
 
-        quizService.isSolved(dto);
-
-        String code = quizResponseDTO.getQuizSubmitCode();
-        String quizExpectation = quizService.findQuizExpectationById(findQuizId).toUpperCase();
-
         QuizVO findQuiz = quizService.findQuizById(findQuizId);
+        String quizExpectation = quizService.findQuizExpectationById(findQuizId).toUpperCase();
         Integer findQuizExp = findQuiz.getQuizExp();
-        if(!code.equals(quizExpectation)) {
+
+        if(findCode == null) {
+            throw new QuizException("소스코드를 다시 확인해주세요");
+        }
+
+        if(!findCode.equals(quizExpectation)) {
             throw new QuizException("잘못된 쿼리 ex) 소문자입력, 세미콜론 미작성");
         }
 
         quizService.saveQuizSubmit(dto);
         quizService.modifySubmitResult(dto);
-        quizService.saveQuizPersonal(findQuizPersonalVO);
-        quizService.isSolved(dto);
-        userService.gainExp(findUserId, findQuizExp);
+
+        Long findPersonalId = quizService.findQuizPersonalById(dto);
+        QuizPersonalVO findAllPersonalVO = quizService.findAllQuizPersonalById(findPersonalId);
+        if(findPersonalId == null) {
+            quizService.saveQuizPersonal(findQuizPersonalVO);
+            quizService.isSolved(dto);
+            userService.gainExp(findUserId, findQuizExp);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",data));
+        }
+
+        if(findAllPersonalVO != null){
+            quizService.isSolved(dto);
+            userService.gainExp(findUserId, findQuizExp);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!", data));
+        }
+
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!", data));
     }
 }

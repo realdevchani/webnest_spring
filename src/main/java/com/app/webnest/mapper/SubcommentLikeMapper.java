@@ -17,12 +17,5 @@ public interface SubcommentLikeMapper {
 
     void deleteByUserAndSubcomment(SubcommentLikeVO subcommentLikeVO);
 
-    // Toggle 기능을 위한 메서드들
-    public int isLiked(Map<String, Long> map);
 
-    public void insertLike(Map<String, Long> map);
-
-    public void deleteLike(Map<String, Long> map);
-
-    public int countLike(Long subcommentId);
 }

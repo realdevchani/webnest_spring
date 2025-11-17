@@ -4,6 +4,7 @@ import com.app.webnest.domain.dto.ApiResponseDTO;
 import com.app.webnest.service.TypingContentsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,6 +29,24 @@ public class TypingContentsApi {
                 typingContentsService.getContent(id)
         );
     }
+
+    @GetMapping("/short/list")
+    public ResponseEntity<ApiResponseDTO> getShortList(@RequestParam String language) {
+        return ResponseEntity.ok(
+                ApiResponseDTO.of("짧은글 리스트 조회 성공",
+                        typingContentsService.findShortContentsByLanguage(language)
+                )
+        );
+    }
+
+    @GetMapping("/short/{id}")
+    public ApiResponseDTO getShortContent(@PathVariable Long id) {
+        return ApiResponseDTO.of(
+                "짧은글 상세 조회 성공",
+                typingContentsService.getContent(id)
+        );
+    }
+
 
 }
 

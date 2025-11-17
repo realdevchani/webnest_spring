@@ -41,5 +41,10 @@ public class FollowDAO {
     public void remove2(FollowVO followVO) {
         followMapper.deleteByUserAndFollower(followVO);
     }
+
+    // 팔로워 수 조회
+    public int findFollower(Long followerId) {
+        return followMapper.selectFollower(followerId);
+    }
 }
 

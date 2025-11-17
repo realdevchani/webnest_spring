@@ -1,6 +1,8 @@
 package com.app.webnest.repository;
 
+import com.app.webnest.domain.dto.QuizMyPageDTO;
 import com.app.webnest.domain.dto.QuizPersonalDTO;
+import com.app.webnest.domain.dto.QuizPersonalResponseDTO;
 import com.app.webnest.domain.dto.QuizResponseDTO;
 import com.app.webnest.domain.vo.QuizPersonalVO;
 import com.app.webnest.domain.vo.QuizSubmitVO;
@@ -41,7 +43,9 @@ public class QuizDAO {
     public QuizPersonalDTO selectQuizPersonalAll() { return  quizMapper.selectQuizPersonalAll(); }
 
     //    해당퀴즈에 대한 personal정보
-    public QuizPersonalVO  selectQuizPersonalById(QuizResponseDTO quizResponseDTO) { return quizMapper.selectQuizPersonalById(quizResponseDTO); }
+    public Long  selectQuizPersonalById(QuizResponseDTO quizResponseDTO) { return quizMapper.selectQuizPersonalById(quizResponseDTO); }
+
+    public QuizPersonalVO selectAllQuizPersonalById(Long id)  { return quizMapper.selectAllQuizPersonalById(id); }
 
     //    퀴즈 풀었던 내역저장
     public void insertQuizPersonal(QuizPersonalVO quizPersonalVO) { quizMapper.insert(quizPersonalVO); }
@@ -50,7 +54,9 @@ public class QuizDAO {
     public Integer updateIsBookmark(QuizResponseDTO quizResponseDTO){ return quizMapper.updateIsBookmark(quizResponseDTO); }
 
 //    해당퀴즈 해결여부
-    public Integer updateIsSolve(QuizResponseDTO quizResponseDTO){  return quizMapper.updateIsSolve(quizResponseDTO); }
+    public Integer updateIsSolve(QuizResponseDTO quizResponseDTO){ return quizMapper.updateIsSolve(quizResponseDTO); }
+
+    public List<QuizPersonalResponseDTO> selectByBookmarkIsSolve(Long userId){ return quizMapper.selectByBookmarkIsSolve(userId);}
 
 //    회원탈퇴시 데이터삭제
     public void deleteQuizPersonal(Long id){}
@@ -66,4 +72,10 @@ public class QuizDAO {
 
     //    채점 후 정답이면 정답여부 업데이트
     public void updateBySubmitResult(QuizResponseDTO quizResponseDTO) { quizMapper.updateSubmitResult(quizResponseDTO); }
+
+//    마이페이지 내가 푼 문제
+    public List<QuizMyPageDTO> selectByIdQuizIsSolveMyData(Long id){ return quizMapper.selectQuizIsSolveMyData(id);}
+
+//    마이페이지 내가 푼 문제의 언어들
+    public List<QuizMyPageDTO> selectByIdQuizIsSolveForLanguageMyData(Long id){ return quizMapper.selectQuizIsSolveForLanguageMyData(id);}
 }

@@ -17,14 +17,18 @@ public interface FollowMapper {
     public List<FollowDTO> selectFollowersByUserId(Long userId);
     
     // 팔로우 추가 (DTO 파라미터)
-    public void insert(FollowDTO followDTO);
+    void insert(FollowDTO followDTO);
     
     // 팔로우 삭제 (id로)
-    public void delete(Long id);
+    void delete(Long id);
     
     // 팔로우 삭제 (VO로)
     public void deleteByUserAndFollower(FollowVO followVO);
 
     public List<FollowDTO> selectFollowingWithPresence(Long userId);
+
+
+    // 팔로워 수 조회
+    int selectFollower(Long followerId);
 }
 

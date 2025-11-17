@@ -1,11 +1,14 @@
 package com.app.webnest.mapper;
 
+import com.app.webnest.domain.dto.QuizPersonalDTO;
 import com.app.webnest.domain.dto.QuizResponseDTO;
 import com.app.webnest.domain.vo.QuizPersonalVO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -73,5 +76,15 @@ class QuizMapperTest {
         QuizResponseDTO quizResponseDTO = new QuizResponseDTO();
         quizResponseDTO.setUserId(1L);
         log.info("북마크해결여부: {}",quizMapper.selectByBookmarkIsSolve(1L));
+    }
+
+    @Test
+    void selectQuizIsSolveMyDataTest() {
+        log.info("selectQuizIsSolveMyDataTest: {}", quizMapper.selectQuizIsSolveMyData(1L));
+    }
+
+    @Test
+    void selectQuizIsSolveForLanguageMyDataTest() {
+        log.info("selectQuizIsSolveForLanguageMyData: {}", quizMapper.selectQuizIsSolveForLanguageMyData(1L));
     }
 }

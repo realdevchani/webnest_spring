@@ -1,6 +1,8 @@
 package com.app.webnest.mapper;
 
+import com.app.webnest.domain.dto.QuizMyPageDTO;
 import com.app.webnest.domain.dto.QuizPersonalDTO;
+import com.app.webnest.domain.dto.QuizPersonalResponseDTO;
 import com.app.webnest.domain.dto.QuizResponseDTO;
 import com.app.webnest.domain.vo.QuizPersonalVO;
 import com.app.webnest.domain.vo.QuizSubmitVO;
@@ -34,7 +36,9 @@ public interface QuizMapper {
     public QuizPersonalDTO selectQuizPersonalAll();
 
 //    해당퀴즈에 대한 personal정보
-    public QuizPersonalVO selectQuizPersonalById(QuizResponseDTO quizResponseDTO);
+    public Long selectQuizPersonalById(QuizResponseDTO quizResponseDTO);
+
+    public QuizPersonalVO selectAllQuizPersonalById(Long id);
 
 //    퀴즈 풀었던 내역저장
     public void insert(QuizPersonalVO QuizPersonalVO);
@@ -48,7 +52,7 @@ public interface QuizMapper {
 //    회원탈퇴시 데이터삭제
     public void delete(Long id);
 
-    public <List>QuizPersonalDTO selectByBookmarkIsSolve(Long userId);
+    public List<QuizPersonalResponseDTO> selectByBookmarkIsSolve(Long userId);
 
 //    퀴즈 제출내역 추가
     public void insertQuizSubmit(QuizResponseDTO quizResponseDTO);
@@ -62,5 +66,9 @@ public interface QuizMapper {
 //    채점 후 정답이면 정답여부 업데이트
     public void updateSubmitResult(QuizResponseDTO quizResponseDTO);
 
+//    마이페이지 내가 푼 문제들
+    public List<QuizMyPageDTO> selectQuizIsSolveMyData(Long id);
+
+    public List<QuizMyPageDTO> selectQuizIsSolveForLanguageMyData(Long id);
 
 }
