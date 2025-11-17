@@ -40,13 +40,13 @@ public class UserAuthApi {
   }
 
 
-  @PutMapping("/modify")
-  public ResponseEntity<ApiResponseDTO> modify(Authentication authentication, @RequestBody UserVO userVO) {
-    Long myId = getUserByToken(authentication).getId();
-    userVO.setId(myId);
-    userService.modify(userVO);
-    return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("정보 수정이 완료되었습니다.")); // 200
-  }
+    @PutMapping("/modify")
+    public ResponseEntity<ApiResponseDTO> modify(Authentication authentication, @RequestBody UserVO userVO) {
+        Long myId = getUserByToken(authentication).getId();
+        userVO.setId(myId);
+        userService.modify(userVO);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("정보 수정이 완료되었습니다.")); // 200
+    }
 
   @DeleteMapping("/unregister")
   public ResponseEntity<ApiResponseDTO> withdraw(Authentication authentication) {

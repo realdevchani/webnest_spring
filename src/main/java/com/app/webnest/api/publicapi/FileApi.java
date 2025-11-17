@@ -67,7 +67,28 @@ public class FileApi {
     @GetMapping("display")
     @ResponseBody
     public byte[] display(String fileName) throws IOException {
-        return FileCopyUtils.copyToByteArray(new File(uploadPath, fileName));
+        log.info("Requested file: {}", fileName);
+        log.info("Upload path: {}", uploadPath);
+        
+        // fileName이 전체 경로를 포함하는 경우 (예: 2024/12/20/uuid_filename.jpg)
+        File file;
+        if (fileName.contains("/")) {
+            // 전체 경로로 파일 찾기
+            file = new File(uploadPath + fileName);
+        } else {
+            // 파일명만 있는 경우 uploadPath에서 직접 찾기
+            file = new File(uploadPath, fileName);
+        }
+        
+        log.info("Full file path: {}", file.getAbsolutePath());
+        log.info("File exists: {}", file.exists());
+        
+        if (!file.exists()) {
+            log.error("File not found: {}", file.getAbsolutePath());
+            throw new IOException("File not found: " + fileName);
+        }
+        
+        return FileCopyUtils.copyToByteArray(file);
     }
 }
 

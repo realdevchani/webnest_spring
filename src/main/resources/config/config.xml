@@ -8,6 +8,7 @@
     <typeAliases>
         <!-- VO -->
         <typeAlias type="com.app.webnest.domain.vo.BanVO" alias="BanVO" />
+        <typeAlias type="com.app.webnest.domain.vo.CardFlipResultVO" alias="CardFlipResultVO" />
         <typeAlias type="com.app.webnest.domain.vo.ChatMessageVO" alias="ChatMessageVO" />
         <typeAlias type="com.app.webnest.domain.vo.CommentLikeVO" alias="CommentLikeVO" />
         <typeAlias type="com.app.webnest.domain.vo.CommentNotificationVO" alias="CommentNotificationVO" />
@@ -37,6 +38,7 @@
 
         <!-- DTO -->
         <typeAlias type="com.app.webnest.domain.dto.BanDTO" alias="BanDTO" />
+        <typeAlias type="com.app.webnest.domain.dto.CardFlipResultDTO" alias="CardFlipResultDTO" />
         <typeAlias type="com.app.webnest.domain.dto.ChatMessageDTO" alias="ChatMessageDTO" />
         <typeAlias type="com.app.webnest.domain.dto.ChatRoomDTO" alias="ChatRoomDTO" />
         <typeAlias type="com.app.webnest.domain.dto.CommentDTO" alias="CommentDTO" />

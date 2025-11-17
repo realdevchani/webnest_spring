@@ -33,7 +33,7 @@ public interface UserService {
   public Map<String, String> registerSocial(UserInsertSocialVO userInsertSocialVO, UserSocialVO userSocialVO);
 
   // 회원 정보 수정
-  public void modify(UserVO userVO);
+  public UserResponseDTO modify(UserVO userVO);
 
 //  회원 경험치 획득
   public void gainExp(Long id, int gain);

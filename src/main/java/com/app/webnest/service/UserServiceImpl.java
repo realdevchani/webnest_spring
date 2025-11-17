@@ -129,10 +129,12 @@ public class UserServiceImpl implements UserService {
 
   // 회원 정보 수정
   @Override
-  public void modify(UserVO userVO) {
+  public UserResponseDTO modify(UserVO userVO) {
     if(userVO.getUserPassword() != null && !userVO.getUserPassword().isBlank())
       userVO.setUserPassword(passwordEncoder.encode(userVO.getUserPassword()));
     userDAO.update(userVO);
+    // 수정 후 업데이트된 사용자 정보 반환
+    return getUserById(userVO.getId());
   }
 
   @Override
