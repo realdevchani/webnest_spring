@@ -1,20 +1,21 @@
 package com.app.webnest.service;
 
+import com.app.webnest.domain.dto.GameJoinDTO;
 import com.app.webnest.domain.dto.LastWordDTO;
+import com.app.webnest.exception.LastWordException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LastWordServiceImpl implements LastWordService {
     
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final GameJoinService gameJoinService;
     
     // 게임방별 사용된 단어 목록 저장 (게임방 ID -> 단어 목록)
     private final Map<Long, List<String>> usedWordsByRoom = new ConcurrentHashMap<>();
@@ -29,7 +30,6 @@ public class LastWordServiceImpl implements LastWordService {
         
         // 첫 단어인 경우 (이전 단어가 없으면 true)
         if (previousWord == null || previousWord.isEmpty()) {
-            log.info("첫 단어입니다. currentWord: {}", currentWord);
             return true;
         }
         
@@ -40,12 +40,7 @@ public class LastWordServiceImpl implements LastWordService {
         String firstChar = currentWord.substring(0, 1);
         
         // 끝말잇기 체크 (마지막 글자와 첫 글자가 같은지)
-        boolean isChained = lastChar.equals(firstChar);
-        
-        log.info("끝말잇기 체크 - previousWord: {}, currentWord: {}, lastChar: {}, firstChar: {}, isChained: {}", 
-                previousWord, currentWord, lastChar, firstChar, isChained);
-        
-        return isChained;
+        return lastChar.equals(firstChar);
     }
 
     @Override
@@ -53,23 +48,21 @@ public class LastWordServiceImpl implements LastWordService {
         String word = lastWordDTO.getWord();
         
         // 기본 검증: 한글 2글자 이상 또는 영문 3글자 이상
+
         // 한글 검증
         if (word.matches("^[가-힣]+$")) {
             boolean isValid = word.length() >= 2;
-            log.info("한글 단어 검증 - word: {}, length: {}, isValid: {}", word, word.length(), isValid);
             return isValid;
         }
         
         // 영문 검증
         if (word.matches("^[a-zA-Z]+$")) {
             boolean isValid = word.length() >= 3;
-            log.info("영문 단어 검증 - word: {}, length: {}, isValid: {}", word, word.length(), isValid);
             return isValid;
         }
         
         // 한글과 영문 혼합 또는 기타 문자
-        log.warn("유효하지 않은 단어 형식 - word: {}", word);
-        return false;
+        throw new LastWordException("유효하지 않은 단어 형식 - word");
     }
 
     @Override
@@ -78,8 +71,7 @@ public class LastWordServiceImpl implements LastWordService {
         String word = lastWordDTO.getWord();
         
         if (gameRoomId == null) {
-            log.warn("게임방 ID가 없습니다.");
-            return false;
+            throw new LastWordException("게임방 ID가 없습니다.");
         }
         
         // 정규화: 한글은 그대로, 영문은 소문자로 변환
@@ -92,50 +84,35 @@ public class LastWordServiceImpl implements LastWordService {
         List<String> usedWords = usedWordsByRoom.getOrDefault(gameRoomId, new ArrayList<>());
         
         // 중복 체크
-        boolean isDuplicated = usedWords.contains(normalizedWord);
-        
-        log.info("중복 단어 체크 - gameRoomId: {}, word: {}, normalizedWord: {}, usedWords: {}, isDuplicated: {}", 
-                gameRoomId, word, normalizedWord, usedWords, isDuplicated);
-        
-        return isDuplicated;
+        return usedWords.contains(normalizedWord);
     }
     
     @Override
     public boolean validateWord(LastWordDTO lastWordDTO) {
-        log.info("단어 검증 시작 - word: {}, gameRoomId: {}", 
-                lastWordDTO.getWord(), lastWordDTO.getGameRoomId());
-        
         // 1. 실제 단어인지 확인
         if (!isRealWord(lastWordDTO)) {
-            log.warn("유효하지 않은 단어입니다. word: {}", lastWordDTO.getWord());
-            return false;
+            throw new LastWordException("유효하지 않은 단어입니다.");
         }
         
         // 2. 중복 단어인지 확인
         if (isDuplicated(lastWordDTO)) {
-            log.warn("이미 사용된 단어입니다. word: {}", lastWordDTO.getWord());
-            return false;
+            throw new LastWordException("이미 사용된 단어 입니다.");
         }
         
         // 3. 끝말잇기 체인 확인
         if (!isChain(lastWordDTO)) {
-            log.warn("끝말잇기가 이어지지 않습니다. previousWord: {}, currentWord: {}", 
-                    lastWordDTO.getPreviousWord(), lastWordDTO.getWord());
-            return false;
+            throw new LastWordException("끝말잇기가 이어지지 않습니다. previousWord: "+lastWordDTO.getPreviousWord()+", currentWord: "+lastWordDTO.getWord());
         }
-        
-        log.info("단어 검증 성공 - word: {}", lastWordDTO.getWord());
         return true;
     }
     
     @Override
-    public void broadcastWord(LastWordDTO lastWordDTO) {
-        Long gameRoomId = lastWordDTO.getGameRoomId();
+    public void broadcastWord(LastWordDTO lastWordDTO, Long gameRoomId) {
         String word = lastWordDTO.getWord();
+        Long userId = lastWordDTO.getUserId();
         
         if (gameRoomId == null) {
-            log.error("게임방 ID가 없어 브로드캐스트를 할 수 없습니다.");
-            return;
+            throw new LastWordException("게임방 ID가 없어 브로드캐스트를 할 수 없습니다.");
         }
         
         // 게임방의 이전 단어 가져오기 (없으면 null)
@@ -144,8 +121,6 @@ public class LastWordServiceImpl implements LastWordService {
         
         // 단어 검증
         if (!validateWord(lastWordDTO)) {
-            log.warn("단어 검증 실패 - 브로드캐스트하지 않습니다. word: {}, previousWord: {}", word, previousWord);
-            
             // 에러 메시지 브로드캐스트
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("type", "WORD_VALIDATION_FAILED");
@@ -157,7 +132,7 @@ public class LastWordServiceImpl implements LastWordService {
                     "/sub/game/last-word/room/" + gameRoomId,
                     errorResponse
             );
-            return;
+            throw new LastWordException("단어 검증 실패 - 브로드캐스트하지 않습니다. word: "+word+", previousWord: "+previousWord);
         }
         
         // 단어 정규화: 한글은 그대로, 영문은 소문자로 변환
@@ -172,24 +147,55 @@ public class LastWordServiceImpl implements LastWordService {
         // 마지막 단어 업데이트
         lastWordByRoom.put(gameRoomId, normalizedWord);
         
+        // 제출자 정보 조회 (색상 정보 포함)
+        String userColor = null;
+        String userName = null;
+        List<GameJoinDTO> gameState = gameJoinService.getArrangeUserByTurn(gameRoomId);
+        
+        if (userId != null) {
+            // 게임 상태에서 제출자 정보 찾기
+            Optional<GameJoinDTO> submittingPlayer = gameState.stream()
+                    .filter(p -> p.getUserId().equals(userId))
+                    .findFirst();
+            
+            if (submittingPlayer.isPresent()) {
+                GameJoinDTO player = submittingPlayer.get();
+                userColor = player.getGameJoinTeamcolor();
+                userName = player.getUserNickname();
+            } else {
+                throw new LastWordException("제출자를 게임 상태에서 찾을 수 없습니다. userId: " + userId);
+            }
+        }
+        
         // 성공 응답 메시지 구성
         Map<String, Object> response = new HashMap<>();
         response.put("type", "WORD_SUBMITTED");
         response.put("word", lastWordDTO.getWord());  // 원본 단어 (대소문자 유지)
-        response.put("explanation", lastWordDTO.getExplanation());
+        response.put("explanation", lastWordDTO.getExplanation());  //추후 llm으로 설명 추가
         response.put("color", lastWordDTO.getColor());
         response.put("isFocus", lastWordDTO.isFocus());
         response.put("previousWord", previousWord);
         response.put("gameRoomId", gameRoomId);
+        
+        // 제출자 정보 추가 (프론트엔드에서 색상 결정을 위해 필수)
+        if (userId != null) {
+            response.put("userId", userId);
+            response.put("submittingUserId", userId);
+        }
+        if (userColor != null) {
+            response.put("userColor", userColor);
+        }
+        if (userName != null) {
+            response.put("userName", userName);
+        }
+
+        response.put("gameState", gameState);
         
         // 브로드캐스트
         simpMessagingTemplate.convertAndSend(
                 "/sub/game/last-word/room/" + gameRoomId,
                 response
         );
-        
-        log.info("단어 브로드캐스트 완료 - gameRoomId: {}, word: {}, previousWord: {}", 
-                gameRoomId, normalizedWord, previousWord);
     }
     
     // 게임 방별 사용된 단어 목록 초기화 (게임 종료 시 사용)
@@ -197,7 +203,6 @@ public class LastWordServiceImpl implements LastWordService {
         if (gameRoomId != null) {
             usedWordsByRoom.remove(gameRoomId);
             lastWordByRoom.remove(gameRoomId);
-            log.info("게임방의 사용된 단어 목록 초기화 - gameRoomId: {}", gameRoomId);
         }
     }
 }

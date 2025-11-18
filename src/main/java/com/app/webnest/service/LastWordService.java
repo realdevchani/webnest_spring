@@ -16,5 +16,5 @@ public interface LastWordService {
     public boolean validateWord(LastWordDTO lastWordDTO);
 
 //    단어를 게임방에 저장하고 브로드캐스트
-    public void broadcastWord(LastWordDTO lastWordDTO);
+    public void broadcastWord(LastWordDTO lastWordDTO, Long gameRoomId);
 }

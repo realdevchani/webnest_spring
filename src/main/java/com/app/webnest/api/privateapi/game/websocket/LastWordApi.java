@@ -1,14 +1,15 @@
 package com.app.webnest.api.privateapi.game.websocket;
 
+import com.app.webnest.domain.dto.ApiResponseDTO;
 import com.app.webnest.domain.dto.GameJoinDTO;
 import com.app.webnest.domain.dto.LastWordDTO;
 import com.app.webnest.domain.vo.GameJoinVO;
+import com.app.webnest.exception.LastWordException;
 import com.app.webnest.service.GameJoinService;
-import com.app.webnest.service.GameRoomService;
 import com.app.webnest.service.LastWordService;
-import com.app.webnest.service.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,19 +20,13 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@Slf4j
 public class LastWordApi {
     private final GameJoinService gameJoinService;
-    private final GameRoomService gameRoomService;
     private final SimpMessagingTemplate simpMessagingTemplate;
-    private final UserServiceImpl userService;
     private final LastWordService lastWordService;
 
     @MessageMapping("/game/last-word/ready")
-    public void updateReady(GameJoinVO gameJoinVO) {
-        log.info("Ready status update requested. gameRoomId: {}, userId: {}, isReady: {}",
-                gameJoinVO.getGameRoomId(), gameJoinVO.getUserId(), gameJoinVO.getGameJoinIsReady());
-
+    public ResponseEntity<ApiResponseDTO> updateReady(GameJoinVO gameJoinVO) {
         // 준비 상태 업데이트
         gameJoinService.updateReady(gameJoinVO);
 
@@ -47,10 +42,13 @@ public class LastWordApi {
                 "/sub/game/last-word/room/" + gameJoinVO.getGameRoomId(),
                 response
         );
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponseDTO.of("플레이어 준비상태 조회", response));
     }
 
     @MessageMapping("/game/last-word/start")
-    public void startGame(GameJoinVO gameJoinVO) {
+    public ResponseEntity<ApiResponseDTO> startGame(GameJoinVO gameJoinVO) {
 
         // 게임 시작 시 모든 플레이어를 자동으로 준비완료 상태로 변경
         List<GameJoinDTO> players = gameJoinService.getArrangeUserByTurn(gameJoinVO.getGameRoomId());
@@ -78,19 +76,12 @@ public class LastWordApi {
             firstPlayerVO.setUserId(currentPlayers.get(0).getUserId());
             firstPlayerVO.setGameRoomId(gameJoinVO.getGameRoomId());
             gameJoinService.updateUserTurn(firstPlayerVO);
-            log.info("First player turn set. userId: {}, gameRoomId: {}",
-                    currentPlayers.get(0).getUserId(), gameJoinVO.getGameRoomId());
         } else {
-//            여기 메세지 출력 시 게임 방 조회 잘못됨 : 게임룸에 포함된 유저 없음
-            log.warn("No players found to set turn. gameRoomId: {}", gameJoinVO.getGameRoomId());
+            throw new LastWordException("/game/last-word/start, startGame(GameJoinVO gameJoinVO), 게임 방 조회 잘못됨 : 게임룸에 포함된 유저 없음");
         }
 
         // 게임 상태 조회 (턴 설정 후)
         List<GameJoinDTO> gameState = gameJoinService.getArrangeUserByTurn(gameJoinVO.getGameRoomId());
-        log.info("Game state after turn set. Players count: {}", gameState.size());
-        gameState.forEach(p -> {
-            log.info("Player in gameState - userId: {}, myTurn: {}", p.getUserId(), p.isGameJoinMyturn());
-        });
 
 //        게임 상태를 started 로 바꿈.
         Map<String, Object> response = new HashMap<>();
@@ -102,11 +93,13 @@ public class LastWordApi {
                 "/sub/game/last-word/room/" + gameJoinVO.getGameRoomId(),
                 response
         );
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponseDTO.of("게임 상태 시작", response));
     }
     @MessageMapping("/game/last-word/state")
-    public void getGameState(GameJoinVO gameJoinVO) {
-        log.info("Game state requested. gameRoomId: {}", gameJoinVO.getGameRoomId());
-
+    public ResponseEntity<ApiResponseDTO> getGameState(GameJoinVO gameJoinVO) {
         // 게임 상태 조회
         List<GameJoinDTO> gameState = gameJoinService.getArrangeUserByTurn(gameJoinVO.getGameRoomId());
 
@@ -119,12 +112,14 @@ public class LastWordApi {
                 "/sub/game/last-word/room/" + gameJoinVO.getGameRoomId(),
                 response
         );
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponseDTO.of("게임 상태 조회", response));
     }
 
     @MessageMapping("/game/last-word/submit")
-    public void submitWord(Map<String, Object> request) {
-        log.info("단어 제출 요청 수신 - request: {}", request);
-
+    public ResponseEntity<ApiResponseDTO> submitWord(Map<String, Object> request) {
         try {
             // 요청 데이터 추출
             Long userId = request.get("userId") != null ? 
@@ -135,24 +130,25 @@ public class LastWordApi {
                     request.get("word").toString() : null;
 
             if (gameRoomId == null || word == null) {
-                log.warn("필수 파라미터가 없습니다. gameRoomId: {}, word: {}", gameRoomId, word);
-                return;
+                throw new LastWordException("필수 파라미터가 없습니다. gameRoomId = " + gameRoomId + ", word = " + word);
             }
 
             // LastWordDTO 생성
             LastWordDTO lastWordDTO = new LastWordDTO();
             lastWordDTO.setWord(word);
             lastWordDTO.setGameRoomId(gameRoomId);
-            // explanation, color, isFocus는 프론트에서 보내지 않으면 null 또는 기본값
+            lastWordDTO.setUserId(userId);
+            lastWordDTO.setFocus(true);
+            lastWordDTO.setExplanation("");
 
             // 단어 검증 및 브로드캐스트
-            lastWordService.broadcastWord(lastWordDTO);
-
-            log.info("단어 제출 처리 완료 - userId: {}, gameRoomId: {}, word: {}", 
-                    userId, gameRoomId, word);
-
+            lastWordService.broadcastWord(lastWordDTO, gameRoomId);
         } catch (Exception e) {
-            log.error("단어 제출 처리 중 오류 발생 - request: {}, error: {}", request, e.getMessage(), e);
+            throw new LastWordException("단어 제출 처리 중 오류 발생");
         }
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponseDTO.of("단어 제출 요청 수신"));
     }
 }

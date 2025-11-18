@@ -38,6 +38,11 @@ public class GlobalExceptionHandler {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseDTO.of(e.getMessage()));
   }
 
+  @ExceptionHandler(LastWordException.class)
+  public ResponseEntity<ApiResponseDTO> handleLastWordException(LastWordException e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponseDTO.of(e.getMessage()));
+  }
+
   // 모든 예외 처리
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ApiResponseDTO<Object>> handleException(Exception e){
