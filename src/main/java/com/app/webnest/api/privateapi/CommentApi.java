@@ -35,7 +35,8 @@ public class CommentApi {
         return  ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("게시글 조회 성공", comments));
     }
 
-    //답글 작성
+
+        //답글 작성
     @PostMapping("/write")
     public ResponseEntity<ApiResponseDTO> writeComments(@RequestBody CommentVO commentVO) {
         Map<String, Long> response = commentService.writeComment(commentVO);

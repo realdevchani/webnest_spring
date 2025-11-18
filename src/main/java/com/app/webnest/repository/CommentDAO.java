@@ -24,6 +24,8 @@ public class CommentDAO {
         return commentMapper.selectById(commentId);
     }
 
+
+
     //답글 작성
     public Long saveComment(CommentVO commentVO) {
         commentMapper .insertComment(commentVO);
