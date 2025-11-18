@@ -2,7 +2,9 @@ package com.app.webnest.api.privateapi;
 
 import com.app.webnest.domain.dto.ApiResponseDTO;
 import com.app.webnest.domain.dto.PostResponseDTO;
+import com.app.webnest.domain.vo.PostNotificationVO;
 import com.app.webnest.domain.vo.PostVO;
+import com.app.webnest.service.NotificationService;
 import com.app.webnest.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +23,7 @@ import java.util.Map;
 public class PostApi {
 
     private final PostService postService;
+    private final NotificationService notificationService;
 
 //    @PostMapping("write")
 //    public ResponseEntity<ApiResponseDTO> writePost(@RequestBody PostVO postVO) {
@@ -119,6 +123,39 @@ public class PostApi {
             @RequestParam Long userId
     ) {
         Map<String, Object> result = postService.togglePostLike(postId, userId);
+        Boolean isLiked = (Boolean) result.get("liked");
+        
+        // 좋아요가 추가된 경우에만 알람 전송 (좋아요 취소 시에는 알람 없음)
+        if (isLiked != null && isLiked) {
+            try {
+                // 게시글 작성자 조회
+                PostResponseDTO post = postService.getPostWithoutView(postId, null);
+                Long postAuthorId = post.getUserId(); // 게시글 작성자
+                
+                // 자기 자신에게는 알람을 보내지 않음
+                if (!userId.equals(postAuthorId)) {
+                    PostNotificationVO postNotificationVO = new PostNotificationVO();
+                    postNotificationVO.setActorUserId(userId); // 좋아요 누른 사람
+                    postNotificationVO.setReceiverUserId(postAuthorId); // 게시글 작성자
+                    postNotificationVO.setPostId(postId); // 게시글 ID
+                    postNotificationVO.setPostNotificationAction("New Like"); // 좋아요 액션
+                    postNotificationVO.setPostNotificationIsRead(0); // 읽지 않음
+                    postNotificationVO.setNotificationCreateAt(new Date());
+                    
+                    notificationService.addPostNotification(postNotificationVO);
+                    log.info("✅ 게시글 좋아요 알람 추가 완료 - actorUserId: {}, receiverUserId: {}, postId: {}", 
+                            postNotificationVO.getActorUserId(), postNotificationVO.getReceiverUserId(), 
+                            postNotificationVO.getPostId());
+                } else {
+                    log.info("ℹ️ 자기 자신의 게시글에 좋아요 - 알람 미발송. userId: {}, postId: {}", 
+                            userId, postId);
+                }
+            } catch (Exception e) {
+                log.error("❌ 게시글 좋아요 알람 추가 실패 - error: {}", e.getMessage(), e);
+                // 알람 추가 실패해도 좋아요는 성공한 것으로 처리
+            }
+        }
+        
         return ResponseEntity.ok(ApiResponseDTO.of("좋아요 변경 완료", result));
     }
 
