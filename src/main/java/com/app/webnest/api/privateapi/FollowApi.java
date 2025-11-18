@@ -2,14 +2,17 @@ package com.app.webnest.api.privateapi;
 
 import com.app.webnest.domain.dto.ApiResponseDTO;
 import com.app.webnest.domain.dto.FollowDTO;
+import com.app.webnest.domain.vo.FollowNotificationVO;
 import com.app.webnest.domain.vo.FollowVO;
 import com.app.webnest.service.FollowService;
+import com.app.webnest.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +23,7 @@ import java.util.Map;
 public class FollowApi {
 
     private final FollowService followService;
+    private final NotificationService notificationService;
 
     /**
      * 특정 유저가 팔로잉하는 유저들 조회
@@ -51,6 +55,24 @@ public class FollowApi {
     @PostMapping("/follow")
     public ResponseEntity<ApiResponseDTO> writeFollow(@RequestBody FollowDTO followDTO) {
         Map<String, Long> response = followService.save(followDTO);
+        
+        // 팔로우 알람 추가
+        try {
+            FollowNotificationVO followNotificationVO = new FollowNotificationVO();
+            followNotificationVO.setActorUserId(followDTO.getFollowerId()); // 팔로우하는 사람
+            followNotificationVO.setReceiverUserId(followDTO.getUserId()); // 팔로우 받는 사람
+            followNotificationVO.setFollowId(response.get("newFollowId")); // 생성된 팔로우 ID
+            followNotificationVO.setFollowNotificationIsRead(0); // 읽지 않음
+            followNotificationVO.setNotificationCreateAt(new Date());
+            
+            notificationService.addFollowNotification(followNotificationVO);
+            log.info("✅ 팔로우 알람 추가 완료 - actorUserId: {}, receiverUserId: {}, followId: {}", 
+                    followNotificationVO.getActorUserId(), followNotificationVO.getReceiverUserId(), followNotificationVO.getFollowId());
+        } catch (Exception e) {
+            log.error("❌ 팔로우 알람 추가 실패 - error: {}", e.getMessage(), e);
+            // 알람 추가 실패해도 팔로우는 성공한 것으로 처리
+        }
+        
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDTO.of("팔로우 완료", response));
     }
 

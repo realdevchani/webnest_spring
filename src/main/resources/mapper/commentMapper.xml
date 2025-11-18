@@ -32,6 +32,20 @@
         WHERE C.POST_ID = #{postId}
         ORDER BY C.ID DESC
     </select>
+    
+    <!-- 댓글 ID로 댓글 조회 -->
+    <select id="selectById" parameterType="Long" resultType="CommentDTO">
+        SELECT C.ID,
+        C.COMMENT_DESCRIPTION,
+        C.USER_ID,
+        C.POST_ID,
+        C.COMMENT_IS_ACCEPT,
+        C.COMMENT_CREATE_AT,
+        U.USER_NICKNAME
+        FROM TBL_COMMENT C
+        JOIN TBL_USER U ON U.ID = C.USER_ID
+        WHERE C.ID = #{id}
+    </select>
 
 
     <!--  답글 작성-->

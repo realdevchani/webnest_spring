@@ -345,7 +345,6 @@ public class SnakeGameApi {
              updateUserExp.forEach((player) -> {
                  userService.modifyUserEXPByGameResult(player);
              });
-
          }
         
         // 9. 더블 체크 및 턴 넘기기

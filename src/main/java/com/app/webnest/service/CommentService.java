@@ -10,6 +10,9 @@ import java.util.Map;
 public interface CommentService {
     //게시글에서 댓글 읽기
     public List<CommentDTO> getCommentsByPostId(Long postId);
+    
+    // 댓글 ID로 댓글 조회
+    public CommentDTO getCommentById(Long commentId);
 
     //답글 작성
     public Map<String, Long> writeComment(CommentVO commentVO);

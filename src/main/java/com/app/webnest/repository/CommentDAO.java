@@ -18,6 +18,13 @@ public class CommentDAO {
     public List<CommentDTO> findCommentPostId(Long postId) {
         return commentMapper.selectByPostId(postId);
     }
+    
+    // 댓글 ID로 댓글 조회
+    public CommentDTO findCommentById(Long commentId) {
+        return commentMapper.selectById(commentId);
+    }
+
+
 
     //답글 작성
     public Long saveComment(CommentVO commentVO) {

@@ -11,6 +11,9 @@ public interface CommentMapper {
 
     // 댓글 가지고 오기
     List<CommentDTO> selectByPostId(Long id);
+    
+    // 댓글 ID로 댓글 조회
+    CommentDTO selectById(Long id);
 
     //답글 작성
     public Long insertComment(CommentVO commentVO);

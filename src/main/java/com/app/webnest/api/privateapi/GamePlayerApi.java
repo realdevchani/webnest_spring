@@ -34,7 +34,6 @@ public class GamePlayerApi {
 
     @PutMapping("/{roomId}/{userId}")
     public ResponseEntity<ApiResponseDTO<GameJoinDTO>> updatePlayer(
-  //버그 -> 수정이 되면서 증식
             @PathVariable Long roomId,
             @PathVariable Long userId,
             @RequestBody GameJoinDTO gameJoinDTO

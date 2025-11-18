@@ -23,6 +23,14 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentDTO> getCommentsByPostId(Long postId) {
         return commentDAO.findCommentPostId(postId);
     }
+    
+    @Override
+    public CommentDTO getCommentById(Long commentId) {
+        return commentDAO.findCommentById(commentId);
+    }
+
+
+
 
     //답글 작성
     @Override

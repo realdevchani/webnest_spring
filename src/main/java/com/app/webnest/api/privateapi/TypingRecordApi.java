@@ -20,7 +20,7 @@ public class TypingRecordApi {
     public ResponseEntity<ApiResponseDTO> saveRecord(@RequestBody Map<String, Object> body) {
         double wpm = Double.parseDouble(body.get("wpm").toString());
         double accuracy = Double.parseDouble(body.get("accuracy").toString());
-        double time = Double.parseDouble(body.get("time").toString());
+        String time = body.get("time").toString();
         Long userId = Long.parseLong(body.get("userId").toString());
         Long contentsId = Long.parseLong(body.get("typingContentsId").toString());
 
