@@ -10,28 +10,35 @@
 <!--        ON TBC.POST_ID = TBP.ID-->
 <!--        WHERE POST_ID = #{postId}-->
 <!--    </select>-->
-    <select id="selectByPostId" parameterType="map" resultType="CommentDTO">
-        SELECT C.ID,
+    <select id="selectByPostId"
+            parameterType="map"
+            resultType="CommentDTO">
+        SELECT
+        C.ID,
         C.COMMENT_DESCRIPTION,
         C.USER_ID,
         C.POST_ID,
         C.COMMENT_IS_ACCEPT,
         C.COMMENT_CREATE_AT,
-        U.USER_NICKNAME,
-
-        -- 🔥 좋아요 개수
-        (SELECT COUNT(*) FROM TBL_COMMENT_LIKE L WHERE L.COMMENT_ID = C.ID) AS likeCount,
-
-        -- 🔥 로그인 유저가 좋아요 눌렀는지 여부
-        (SELECT COUNT(*) FROM TBL_COMMENT_LIKE L
+        U.USER_NICKNAME        AS userNickname,
+        U.USER_THUMBNAIL_NAME  AS userThumbnailName,
+        U.USER_THUMBNAIL_URL   AS userThumbnailUrl,
+        /* 좋아요 개수 */
+        (SELECT COUNT(*)
+        FROM TBL_COMMENT_LIKE L
+        WHERE L.COMMENT_ID = C.ID) AS likeCount,
+        /* 로그인 유저가 좋아요 눌렀는지 여부 */
+        (SELECT COUNT(*)
+        FROM TBL_COMMENT_LIKE L
         WHERE L.COMMENT_ID = C.ID
-        AND L.USER_ID = #{userId}) AS liked
-
+        AND L.USER_ID = #{loginUserId}) AS liked
         FROM TBL_COMMENT C
-        JOIN TBL_USER U ON U.ID = C.USER_ID
+        JOIN TBL_USER U
+        ON U.ID = C.USER_ID
         WHERE C.POST_ID = #{postId}
         ORDER BY C.ID DESC
     </select>
+
     
     <!-- 댓글 ID로 댓글 조회 -->
     <select id="selectById" parameterType="Long" resultType="CommentDTO">
@@ -41,7 +48,7 @@
         C.POST_ID,
         C.COMMENT_IS_ACCEPT,
         C.COMMENT_CREATE_AT,
-        U.USER_NICKNAME
+        U.USER_NICKNAME as userNickname,
         FROM TBL_COMMENT C
         JOIN TBL_USER U ON U.ID = C.USER_ID
         WHERE C.ID = #{id}
