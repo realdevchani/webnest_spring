@@ -45,7 +45,7 @@ public class UserApi {
 //
 //    // 회원탈퇴
 //    @DeleteMapping("/unregister")
-//    public ResponseEntity<ApiResponseDTO> unregister(@RequestBody Long id){
+//    public ResponseEntity<ApiResponseDTO> unregister(@Requeody Long id){
 //        userService.withdraw(id);
 //        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponseDTO.of("회원 탈퇴가 완료되었습니다.")); // 204
 //    }

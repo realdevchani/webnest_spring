@@ -34,6 +34,7 @@
         <typeAlias type="com.app.webnest.domain.vo.WinningStreakVO" alias="WinningStreakVO" />
         <typeAlias type="com.app.webnest.domain.vo.TypingContentsVO" alias="TypingContentsVO" />
         <typeAlias type="com.app.webnest.domain.vo.TypingRecordVO" alias="TypingRecordVO" />
+        <typeAlias type="com.app.webnest.domain.vo.ConcaveVO" alias="ConcaveVO" />
 
 
         <!-- DTO -->

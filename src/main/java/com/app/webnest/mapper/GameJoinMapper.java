@@ -38,6 +38,7 @@ public interface GameJoinMapper {
     // 선택한 유저의 정보를 수정한다. 위치 이동, 턴 변경
     public void updateUserPosition(GameJoinVO gameJoinVO);
     public void updateUserTurn(GameJoinVO gameJoinVO);
+    public void updateCurrentUserTurn(GameJoinVO gameJoinVO);
     
     // 게임이 끝났을 때는 게임방에 있는 모두를 변경해줘야 한다.
     public void updateAllTurn(Long gameRoomId);
