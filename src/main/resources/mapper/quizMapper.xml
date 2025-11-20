@@ -42,14 +42,13 @@
             P.userId AS userId,
             P.quizId AS quizId
         FROM TBL_QUIZ Q
-         LEFT JOIN (
-            SELECT
-            QUIZ_ID AS quizId,
-            USER_ID AS userId,
-            MAX(ID) AS quizPersonalId,
-            MAX(QUIZ_PERSONAL_IS_BOOKMARK) AS QUIZ_PERSONAL_IS_BOOKMARK,
-            MAX(QUIZ_PERSONAL_IS_SOLVE) AS QUIZ_PERSONAL_IS_SOLVE
-
+             LEFT JOIN (
+                SELECT
+                QUIZ_ID AS quizId,
+                USER_ID AS userId,
+                MAX(ID) AS quizPersonalId,
+                MAX(QUIZ_PERSONAL_IS_BOOKMARK) AS QUIZ_PERSONAL_IS_BOOKMARK,
+                MAX(QUIZ_PERSONAL_IS_SOLVE) AS QUIZ_PERSONAL_IS_SOLVE
         FROM TBL_QUIZ_PERSONAL
             WHERE USER_ID = #{userId}
             GROUP BY QUIZ_ID, USER_ID

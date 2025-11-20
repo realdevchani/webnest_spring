@@ -67,6 +67,7 @@ public class GameJoinDAO {
     public void modifyUserPosition(GameJoinVO gameJoinVO){
         gameJoinMapper.updateUserPosition(gameJoinVO);
     }
+    public void modifyCurrentUserTurn(GameJoinVO gameJoinVO){ gameJoinMapper.updateCurrentUserTurn(gameJoinVO); }
     
     // 게임이 끝났을 때는 게임방에 있는 모두를 변경해줘야 한다.
         public void modifyAllTurn(Long gameRoomId){

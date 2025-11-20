@@ -127,6 +127,10 @@
         WHERE USER_ID = #{userId}
         AND GAME_ROOM_ID = #{gameRoomId}
     </update>
+    <update id="updateCurrentUserTurn" parameterType="GameJoinVO">
+        UPDATE TBL_GAME_JOIN SET GAME_JOIN_MYTURN = 0
+        WHERE GAME_ROOM_ID = #{gameRoomId};
+    </update>
     <update id="updateUserTurn" parameterType="GameJoinVO">
         UPDATE TBL_GAME_JOIN SET GAME_JOIN_MYTURN = 1
         WHERE USER_ID = #{userId} AND GAME_ROOM_ID = #{gameRoomId}

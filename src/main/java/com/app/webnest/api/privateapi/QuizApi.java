@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/*")
 @RequiredArgsConstructor
 @Slf4j
-public class QuizApi {
+public class    QuizApi {
 
     private final JwtTokenUtil jwtTokenUtil;
     private final JavaCompileService javaCompileService;
@@ -46,11 +46,9 @@ public class QuizApi {
     @PostMapping("/quiz")
     public ResponseEntity<ApiResponseDTO<Map<String, Object>>> getQuizList(
             @RequestBody Map<String,Object> params,
-            QuizResponseDTO quizResponseDTO,
             @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         // 쿼리에 넘길 Map 구성
         if (params == null) params = new HashMap<>();
-        log.info("params: {}", params);
         String token = null;
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
             token = authorizationHeader.substring(7);
@@ -84,11 +82,11 @@ public class QuizApi {
         filters.put("quizDifficult", quizDifficult);
         filters.put("keyword", keyword);
         filters.put("quizPersonalIsSolve", quizPersonalIsSolve);
-        filters.put("offset", offset);      // 매퍼에서 사용할 이름
-        filters.put("pageSize", pageSize);  // 매퍼에서 사용할 이름
+        filters.put("offset", offset);
+        filters.put("pageSize", pageSize);
         filters.put("userId", userId);
-
         List<QuizPersonalDTO> findQuizList = quizService.findQuizPersonal(filters);
+
         if (findQuizList == null) findQuizList = new ArrayList<>();
 
         Long quizTotalCount = quizService.quizCount(filters); // quizCount 쿼리는 TBL_QUIZ 기준으로 count 하도록 유지
@@ -98,7 +96,7 @@ public class QuizApi {
         data.put("page", page);
 
 
-        return ResponseEntity.ok(ApiResponseDTO.of("문제리스트 불러오기", data));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("문제리스트 불러오기", data));
     };
 
     @PostMapping("/quiz/{quizId}/bookmark")
@@ -115,8 +113,6 @@ public class QuizApi {
         Long userId = quizResponseDTO.getUserId();
 
         QuizResponseDTO dto = new QuizResponseDTO();
-        log.info("userID: {}", userId);
-        log.info("quizId: {}", quizId);
         dto.setUserId(userId);
         dto.setQuizId(quizId);
 //        북마크 눌렀을때 퍼스널테이블에 이미 해당유저가 있다면 북마크만 업데이트
