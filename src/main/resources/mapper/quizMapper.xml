@@ -186,10 +186,12 @@
     </insert>
 
 <!--        &#45;&#45; 한사람의 해당문제에 대한 제출내역-->
-    <select id="selectQuizSubmit" parameterType="QuizResponseDTO" resultType="QuizSubmitVO">
+    <select id="selectQuizSubmit" resultType="QuizSubmitVO">
         SELECT ID, QUIZ_SUBMIT_CODE, QUIZ_SUBMIT_RESULT, QUIZ_SUBMIT_CREATE_AT, QUIZ_SUBMIT_ERROR, USER_ID, QUIZ_ID
         FROM TBL_QUIZ_SUBMIT
         WHERE USER_ID = #{userId} AND QUIZ_ID = #{quizId}
+        ORDER BY ID DESC
+        FETCH FIRST 1 ROWS ONLY
     </select>
 
 <!--        &#45;&#45; 한사람의 모든문제에 대한 제출내역들-->

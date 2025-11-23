@@ -55,7 +55,6 @@ class QuizMapperTest {
         QuizResponseDTO quizResponseDTO = new QuizResponseDTO();
         quizResponseDTO.setQuizId(2L);
         quizResponseDTO.setUserId(2L);
-        log.info("Submit: {}",quizMapper.selectQuizSubmit(quizResponseDTO));
     }
 
     @Test

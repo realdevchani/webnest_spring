@@ -148,14 +148,30 @@ public class    QuizApi {
         HashMap <String, Object> quizDatas = new HashMap<>();
         Long findQuizId = quizResponseDTO.getQuizId();
         Long findUserId = quizResponseDTO.getUserId();
-
         QuizVO findQuiz = quizService.findQuizById(findQuizId);
-        log.info("findQuiz: {}", findQuiz);
-        quizResponseDTO.setQuizId(findQuizId);
-        quizResponseDTO.setUserId(findUserId);
 
+        QuizResponseDTO dto = new QuizResponseDTO();
+        dto.setUserId(findUserId);
+        dto.setQuizId(findQuizId);
 
-        quizDatas.put("findQuiz", findQuiz);
+        Long findPersonalId = quizService.findQuizPersonalById(dto);
+        QuizSubmitVO findSubmit = quizService.findQuizSubmitByIds(dto);
+        if(findSubmit == null){
+            quizDatas.put("findQuiz", findQuiz);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("문제상세조회", quizDatas));
+        }
+        String userCode = findSubmit.getQuizSubmitCode();
+        QuizPersonalVO findPersonal = quizService.findAllQuizPersonalById(findPersonalId);
+        if(findPersonal == null){
+            quizDatas.put("findQuiz", findQuiz);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("문제상세조회", quizDatas));
+        }
+        Integer isSolved = findPersonal.getQuizPersonalIsSolve();
+
+            quizDatas.put("isSolved", isSolved);
+            quizDatas.put("findQuiz", findQuiz);
+            quizDatas.put("userCode", userCode);
+
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("문제상세조회",  quizDatas));
     }
 
@@ -171,45 +187,58 @@ public class    QuizApi {
         try {
         QuizResponseDTO dto = new QuizResponseDTO();
         HashMap<String, Object> submitDatas = new HashMap<>();
-        Long findUserId = quizResponseDTO.getUserId();
-        Long findQuizId = quizResponseDTO.getQuizId();
+        Long userId = quizResponseDTO.getUserId();
+        Long quizId = quizResponseDTO.getQuizId();
         String userCode = quizResponseDTO.getQuizSubmitCode();
         String userResultCode = quizResponseDTO.getQuizSubmitResultCode();
 
-//        log.info("submitCode: {}", userResultCode);
-//        log.info("finduserCode: {}", userCode);
-//        log.info("findUserId: {}",findUserId);
-//        log.info("findQuizId: {}",findQuizId);
+        log.info("submitCode: {}", userResultCode);
+        log.info("finduserCode: {}", userCode);
+        log.info("findUserId: {}",userId);
+        log.info("findQuizId: {}",quizId);
 
 
         QuizPersonalVO findQuizPersonalVO = new QuizPersonalVO();
-        findQuizPersonalVO.setUserId(findUserId);
-        findQuizPersonalVO.setQuizId(findQuizId);
-
-        QuizVO findQuiz = quizService.findQuizById(findQuizId);
+        findQuizPersonalVO.setUserId(userId);
+        findQuizPersonalVO.setQuizId(quizId);
+        QuizVO findQuiz = quizService.findQuizById(quizId);
         Integer findQuizExp = findQuiz.getQuizExp();
 
-        dto.setUserId(findUserId);
-        dto.setQuizId(findQuizId);
+        dto.setUserId(userId);
+        dto.setQuizId(quizId);
         dto.setQuizSubmitCode(userResultCode);
 
+        log.info("dto {}", dto);
 
 
 //        서브밋 테이블에 추가해야함
         quizService.saveQuizSubmit(dto);
         quizService.modifySubmitResult(dto);
+
+        QuizSubmitVO findSubmit = quizService.findQuizSubmitByIds(dto);
+        log.info("findSubmit {}", findSubmit);
 //        퍼스널 테이블에 추가
         Long findPersonalId = quizService.findQuizPersonalById(dto);
         QuizPersonalVO findAllPersonalVO = quizService.findAllQuizPersonalById(findPersonalId);
         if(findPersonalId == null) {
             quizService.saveQuizPersonal(findQuizPersonalVO);
             quizService.isSolved(dto);
-            userService.gainExp(findUserId, findQuizExp);
+            userService.gainExp(userId, findQuizExp);
+            Long newQuizPersonalId = quizService.findQuizPersonalById(dto);
+            QuizPersonalVO newPersonal = quizService.findAllQuizPersonalById(newQuizPersonalId);
+            Integer isSolved = newPersonal.getQuizPersonalIsSolve();
+            submitDatas.put("isSolved", isSolved);
+            submitDatas.put("userCode", userResultCode);
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",submitDatas));
         }
         if(findAllPersonalVO != null){
             quizService.isSolved(dto);
-            userService.gainExp(findUserId, findQuizExp);
+            userService.gainExp(userId, findQuizExp);
+            Long newQuizPersonalId = quizService.findQuizPersonalById(dto);
+            QuizPersonalVO newPersonal = quizService.findAllQuizPersonalById(newQuizPersonalId);
+            Integer isSolved = newPersonal.getQuizPersonalIsSolve();
+            submitDatas.put("isSolved", isSolved);
+            submitDatas.put("userCode", userResultCode);
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",submitDatas));
         }
 
@@ -256,16 +285,17 @@ public class    QuizApi {
 //  자바 채점
     @PostMapping("/quiz/java-success")
     public ResponseEntity<ApiResponseDTO<HashMap>> getIsSuccess(@RequestBody QuizResponseDTO quizResponseDTO ) {
-        HashMap<String, Object> data = new HashMap<>();
-        String code = quizResponseDTO.getQuizSubmitCode();
+        HashMap<String, Object> submitDatas = new HashMap<>();
+        String userResultCode = quizResponseDTO.getQuizSubmitCode();
         String className = quizResponseDTO.getClassName();
 
         QuizResponseDTO dto = new QuizResponseDTO();
         Long quizId = quizResponseDTO.getQuizId();
         Long findUserId = quizResponseDTO.getUserId();
+
         dto.setQuizId(quizId);
         dto.setUserId(findUserId);
-        dto.setQuizSubmitCode(code);
+        dto.setQuizSubmitCode(userResultCode);
 
         QuizPersonalVO findQuizPersonalVO = new QuizPersonalVO();
         findQuizPersonalVO.setUserId(findUserId);
@@ -275,7 +305,7 @@ public class    QuizApi {
         String findQuizExpectation = findQuiz.getQuizExpectation();
         Integer findQuizExp = findQuiz.getQuizExp();
 
-        String result = javaCompileService.execute(className, code);
+        String result = javaCompileService.execute(className, userResultCode);
 
         if(result == null) {
             throw new QuizException("소스코드를 다시 확인해주세요");
@@ -287,6 +317,8 @@ public class    QuizApi {
         //        서브밋 테이블에 추가해야함
         quizService.saveQuizSubmit(dto);
         quizService.modifySubmitResult(dto);
+
+        QuizSubmitVO findSubmit = quizService.findQuizSubmitByIds(dto);
 //        퍼스널 테이블에 추가
         Long findPersonalId = quizService.findQuizPersonalById(dto);
         QuizPersonalVO findAllPersonalVO = quizService.findAllQuizPersonalById(findPersonalId);
@@ -294,29 +326,39 @@ public class    QuizApi {
             quizService.saveQuizPersonal(findQuizPersonalVO);
             quizService.isSolved(dto);
             userService.gainExp(findUserId, findQuizExp);
-            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",data));
+            Long newQuizPersonalId = quizService.findQuizPersonalById(dto);
+            QuizPersonalVO newPersonal = quizService.findAllQuizPersonalById(newQuizPersonalId);
+            Integer isSolved = newPersonal.getQuizPersonalIsSolve();
+            submitDatas.put("isSolved", isSolved);
+            submitDatas.put("userCode", userResultCode);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",submitDatas));
         }
         if(findAllPersonalVO != null){
             quizService.isSolved(dto);
             userService.gainExp(findUserId, findQuizExp);
-            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",data));
+            Long newQuizPersonalId = quizService.findQuizPersonalById(dto);
+            QuizPersonalVO newPersonal = quizService.findAllQuizPersonalById(newQuizPersonalId);
+            Integer isSolved = newPersonal.getQuizPersonalIsSolve();
+            submitDatas.put("isSolved", isSolved);
+            submitDatas.put("userCode", userResultCode);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",submitDatas));
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!", data));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!", submitDatas));
     }
 //    sql채점
     @PostMapping("/quiz/sql-success")
     public ResponseEntity<ApiResponseDTO<HashMap>> getSqlSuccess(@RequestBody QuizResponseDTO quizResponseDTO ) {
-        HashMap<String, Object> data = new HashMap<>();
+        HashMap<String, Object> submitDatas = new HashMap<>();
         QuizResponseDTO dto = new QuizResponseDTO();
 
         Long findQuizId = quizResponseDTO.getQuizId();
         Long findUserId = quizResponseDTO.getUserId();
-        String findCode = quizResponseDTO.getQuizSubmitCode();
+        String userResultCode = quizResponseDTO.getQuizSubmitCode();
 
         dto.setQuizId(findQuizId);
         dto.setUserId(findUserId);
-        dto.setQuizSubmitCode(findCode);
+        dto.setQuizSubmitCode(userResultCode);
 
         QuizPersonalVO findQuizPersonalVO = new QuizPersonalVO();
         findQuizPersonalVO.setUserId(findUserId);
@@ -326,38 +368,42 @@ public class    QuizApi {
         String quizExpectation = quizService.findQuizExpectationById(findQuizId).toUpperCase();
         Integer findQuizExp = findQuiz.getQuizExp();
 
-        if(findCode == null) {
+        if(userResultCode == null) {
             throw new QuizException("소스코드를 다시 확인해주세요");
         }
 
-        if(!findCode.equals(quizExpectation)) {
+        if(!userResultCode.equals(quizExpectation)) {
             throw new QuizException("잘못된 쿼리 ex) 소문자입력, 세미콜론 미작성");
         }
 
         quizService.saveQuizSubmit(dto);
         quizService.modifySubmitResult(dto);
 
-        log.info("findUserId {}", findUserId);
-        log.info("findQuizId {}", findQuizId);
-        log.info("findCode: {}", findCode);
         Long findPersonalId = quizService.findQuizPersonalById(dto);
         QuizPersonalVO findAllPersonalVO = quizService.findAllQuizPersonalById(findPersonalId);
         if(findPersonalId == null) {
             quizService.saveQuizPersonal(findQuizPersonalVO);
-            boolean isSolve = quizService.isSolved(dto);
+            quizService.isSolved(dto);
             userService.gainExp(findUserId, findQuizExp);
-            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",data));
+            Long newQuizPersonalId = quizService.findQuizPersonalById(dto);
+            QuizPersonalVO newPersonal = quizService.findAllQuizPersonalById(newQuizPersonalId);
+            Integer isSolved = newPersonal.getQuizPersonalIsSolve();
+            submitDatas.put("isSolved", isSolved);
+            submitDatas.put("userCode", userResultCode);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!",submitDatas));
         }
 
         if(findAllPersonalVO != null){
-            boolean isSolve = quizService.isSolved(dto);
-            log.info("isSolve {}", isSolve);
-            data.put("isSolved", isSolve);
             quizService.isSolved(dto);
             userService.gainExp(findUserId, findQuizExp);
-            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!", data));
+            Long newQuizPersonalId = quizService.findQuizPersonalById(dto);
+            QuizPersonalVO newPersonal = quizService.findAllQuizPersonalById(newQuizPersonalId);
+            Integer isSolved = newPersonal.getQuizPersonalIsSolve();
+            submitDatas.put("isSolved", isSolved);
+            submitDatas.put("userCode", userResultCode);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!", submitDatas));
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!", data));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("기댓값과 일치합니다!\n다른 문제도 도전해보세요!!", submitDatas));
     }
 }
