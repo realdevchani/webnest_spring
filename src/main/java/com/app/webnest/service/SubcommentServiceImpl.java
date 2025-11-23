@@ -3,6 +3,7 @@ package com.app.webnest.service;
 import com.app.webnest.domain.dto.SubcommentDTO;
 import com.app.webnest.domain.vo.SubcommentVO;
 import com.app.webnest.repository.SubcommentDAO;
+import com.app.webnest.repository.SubcommentLikeDAO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import java.util.Map;
 @Transactional
 public class SubcommentServiceImpl implements SubcommentService {
     private final SubcommentDAO subcommentDAO;
+    private final SubcommentLikeDAO subcommentLikeDAO;
 
     @Override
     public List<SubcommentDTO> getSubcomments(Long commentId) {
@@ -34,6 +36,9 @@ public class SubcommentServiceImpl implements SubcommentService {
     // 대댓글 삭제
     @Override
     public void removeSubcomment(Long id) {
+        // 대댓글 삭제 전에 해당 대댓글의 좋아요들을 먼저 삭제
+        subcommentLikeDAO.removeBySubcommentId(id);
+        // 그 다음 대댓글 삭제
         subcommentDAO.removeSubcomment(id);
     }
 }

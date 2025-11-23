@@ -20,6 +20,9 @@ public interface CommentLikeMapper {
     // 좋아요 삭제 (VO로)
     public void deleteByUserAndComment(CommentLikeVO commentLikeVO);
 
+    // 댓글 ID로 댓글 좋아요들 삭제
+    public void deleteByCommentId(Long commentId);
+
     public int isLiked(Map<String, Long> map);
 
     public void insertLike(Map<String, Long> map);

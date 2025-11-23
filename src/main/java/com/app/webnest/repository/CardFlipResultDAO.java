@@ -25,6 +25,11 @@ public class CardFlipResultDAO {
         cardFlipResultMapper.update(cardFlipResultVO);
     }
 
+    // 순위만 업데이트
+    public void updateRank(CardFlipResultVO cardFlipResultVO) {
+        cardFlipResultMapper.updateRank(cardFlipResultVO);
+    }
+
     // 게임방 내 모든 결과 조회 (순위 포함, 사용자 정보 JOIN)
     public List<CardFlipResultDTO> findAllByGameRoomId(Long gameRoomId) {
         return cardFlipResultMapper.selectAllByGameRoomId(gameRoomId);

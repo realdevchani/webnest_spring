@@ -2,16 +2,17 @@ package com.app.webnest.service;
 
 import com.app.webnest.domain.dto.CardFlipResultDTO;
 import com.app.webnest.domain.dto.GameJoinDTO;
+import com.app.webnest.domain.dto.UserResponseDTO;
 import com.app.webnest.domain.vo.CardFlipResultVO;
 import com.app.webnest.repository.CardFlipResultDAO;
 import com.app.webnest.service.GameJoinService;
+import com.app.webnest.service.GameRoomService;
 import com.app.webnest.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,143 +25,222 @@ public class CardFlipResultServiceImpl implements CardFlipResultService {
     private final CardFlipResultDAO cardFlipResultDAO;
     private final UserService userService;
     private final GameJoinService gameJoinService;
+    private final GameRoomService gameRoomService;
 
     @Override
     public CardFlipResultDTO save(CardFlipResultVO cardFlipResultVO) {
-        log.info("카드 뒤집기 결과 저장 시작 - userId: {}, gameRoomId: {}, finishTime: {}, matchedPairs: {}",
-                cardFlipResultVO.getUserId(), cardFlipResultVO.getGameRoomId(),
-                cardFlipResultVO.getFinishTime(), cardFlipResultVO.getMatchedPairs());
+        Long userId = cardFlipResultVO.getUserId();
+        Long gameRoomId = cardFlipResultVO.getGameRoomId();
 
-        // userId와 gameRoomId를 final 변수로 저장 (람다 표현식에서 사용하기 위해)
-        final Long userId = cardFlipResultVO.getUserId();
-        final Long gameRoomId = cardFlipResultVO.getGameRoomId();
-
-        // 1. 이미 기록이 있는지 확인 (같은 사용자가 같은 방에서 이미 완료한 경우)
-        Optional<CardFlipResultVO> existingResult = cardFlipResultDAO.findByUserIdAndGameRoomId(cardFlipResultVO);
-
-        if (existingResult.isPresent()) {
-            // 이미 기록이 있으면 업데이트 (더 빠른 시간으로 재도전한 경우)
-            log.info("기존 기록 발견, 업데이트 - userId: {}, gameRoomId: {}", 
-                    cardFlipResultVO.getUserId(), cardFlipResultVO.getGameRoomId());
-            // 기존 기록의 시간과 비교하여 더 빠른 시간일 때만 업데이트
-            CardFlipResultVO existing = existingResult.get();
-            if (cardFlipResultVO.getFinishTime() < existing.getFinishTime()) {
-                // 순위는 다시 계산해야 하므로 일단 저장하고 전체 조회 후 순위 재계산
-                // 하지만 간단하게 기존 순위 유지하거나 전체 조회 후 재계산 필요
-                cardFlipResultDAO.update(cardFlipResultVO);
-            } else {
-                log.info("기존 기록이 더 빠름, 업데이트 안함 - 기존: {}초, 새: {}초",
-                        existing.getFinishTime(), cardFlipResultVO.getFinishTime());
-                // 기존 기록이 더 빠르면 업데이트하지 않음
-                cardFlipResultVO = existing;
-            }
-        } else {
-            // 기록이 없으면 새로 저장
+        // 1단계: 결과 저장 (게임방이 사라지므로 항상 새로 저장)
+        try {
             cardFlipResultDAO.save(cardFlipResultVO);
-            log.info("새로운 기록 저장 완료 - userId: {}, gameRoomId: {}", 
-                    cardFlipResultVO.getUserId(), cardFlipResultVO.getGameRoomId());
+        } catch (Exception e) {
+            log.error("결과 저장 중 예외 발생 - userId: {}, gameRoomId: {}, error: {}", 
+                    userId, gameRoomId, e.getMessage(), e);
+            throw e;
         }
 
-        // 2. 순위 계산을 위해 전체 결과 조회
+        // 2단계: 순위 계산 및 업데이트
+        try {
+            updateAllRanks(gameRoomId);
+        } catch (Exception e) {
+            log.error("순위 계산 중 예외 발생 - gameRoomId: {}, error: {}", gameRoomId, e.getMessage(), e);
+            // 순위 계산 실패해도 저장은 성공했으므로 계속 진행
+        }
+
+        // 3단계: 저장된 결과 반환 (삭제 전에 조회 - 중요!)
+        CardFlipResultDTO savedResult = null;
+        try {
+            List<CardFlipResultDTO> allResults = cardFlipResultDAO.findAllByGameRoomId(gameRoomId);
+            
+            if (allResults == null) {
+                log.error("결과 조회 실패 - allResults가 null. userId: {}, gameRoomId: {}", userId, gameRoomId);
+                savedResult = null;
+            } else if (allResults.isEmpty()) {
+                log.warn("결과 조회 실패 - 결과가 없음. userId: {}, gameRoomId: {}, matchedPairs: {}", 
+                        userId, gameRoomId, cardFlipResultVO.getCardFlipResultMatchedPairs());
+                // 저장은 성공했지만 조회가 안 되는 경우, 저장한 VO를 기반으로 DTO 생성
+                CardFlipResultVO searchVO = new CardFlipResultVO();
+                searchVO.setUserId(userId);
+                searchVO.setGameRoomId(gameRoomId);
+                Optional<CardFlipResultVO> savedVO = cardFlipResultDAO.findByUserIdAndGameRoomId(searchVO);
+                
+                if (savedVO.isPresent()) {
+                    savedResult = buildDTOFromVO(savedVO.get(), gameRoomId);
+                } else {
+                    log.error("직접 조회도 실패 - 저장된 결과를 찾을 수 없음. userId: {}, gameRoomId: {}", userId, gameRoomId);
+                    savedResult = null;
+                }
+            } else {
+                // 현재 사용자의 결과 찾기
+                for (CardFlipResultDTO result : allResults) {
+                    if (result.getUserId() != null && result.getUserId().equals(userId)) {
+                        savedResult = result;
+                        break;
+                    }
+                }
+                
+                if (savedResult == null) {
+                    log.warn("저장된 결과를 찾을 수 없음 - userId: {}, gameRoomId: {}, 조회된 결과 수: {}, 결과 userId 목록: {}", 
+                            userId, gameRoomId, allResults.size(), 
+                            allResults.stream().map(r -> r.getUserId()).toList());
+                }
+            }
+        } catch (Exception e) {
+            log.error("결과 조회 중 예외 발생 - userId: {}, gameRoomId: {}, error: {}", 
+                    userId, gameRoomId, e.getMessage(), e);
+            savedResult = null;
+        }
+
+        // 4단계: 게임 완료 확인 및 처리 (결과 반환 후에 처리)
+        Integer matchedPairs = cardFlipResultVO.getCardFlipResultMatchedPairs();
+        if (matchedPairs != null && matchedPairs == 10) {
+            // 게임 완료 처리 (경험치 지급 등, 삭제는 비동기로 처리)
+            handleGameCompletionWithoutDelete(userId, gameRoomId);
+        }
+
+        return savedResult;
+    }
+
+    /**
+     * 모든 플레이어의 순위를 계산하고 업데이트
+     */
+    private void updateAllRanks(Long gameRoomId) {
+        // 게임방의 모든 결과 가져오기 (finishTime 순으로 정렬됨)
         List<CardFlipResultDTO> allResults = cardFlipResultDAO.findAllByGameRoomId(gameRoomId);
-        
-        // 3. 순위 재계산 및 업데이트 (필요시)
-        // 현재는 조회 시 ROW_NUMBER()로 순위 계산하므로 별도 업데이트 불필요
-        // 하지만 rankInRoom을 저장하려면 업데이트 필요
 
-        // 4. 게임 완료 시 경험치 추가 (10쌍 모두 매칭 완료한 경우)
-        if (cardFlipResultVO.getMatchedPairs() != null && cardFlipResultVO.getMatchedPairs() == 10) {
-            log.info("게임 완료 - 경험치 추가 시작 - userId: {}, gameRoomId: {}", 
-                    userId, gameRoomId);
-            
-            // 게임방의 플레이어 정보 조회
-            List<GameJoinDTO> players = gameJoinService.getPlayers(gameRoomId);
-            
-            // 순위에 따라 경험치 차등 지급
-            int rank = allResults.stream()
-                    .filter(r -> r.getUserId().equals(userId))
-                    .findFirst()
-                    .map(r -> r.getRankInRoom() != null ? r.getRankInRoom() : 999)
-                    .orElse(999);
-            
-            // 순위별 경험치: 1등 200, 2등 150, 3등 100, 그 외 50
-            int expGain = 50; // 기본 경험치
-            if (rank == 1) {
-                expGain = 200;
-            } else if (rank == 2) {
-                expGain = 150;
-            } else if (rank == 3) {
-                expGain = 100;
-            }
-            
-            // 경험치 추가 - gainExp 메서드를 사용하여 체크 제약조건 위반 방지
-            // gainExp는 경험치를 0-99 범위로 제한하고 레벨도 함께 업데이트합니다
-            userService.gainExp(userId, expGain);
-            
-            log.info("경험치 추가 완료 - userId: {}, rank: {}, expGain: {}", 
-                    userId, rank, expGain);
-            
-            // 5. 저장된 결과 조회 (삭제 전에 조회해야 함)
-            CardFlipResultDTO savedResultDTO = null;
-            CardFlipResultVO queryVO = new CardFlipResultVO();
-            queryVO.setUserId(userId);
-            queryVO.setGameRoomId(gameRoomId);
-            Optional<CardFlipResultVO> savedResult = cardFlipResultDAO.findByUserIdAndGameRoomId(queryVO);
-            if (savedResult.isPresent()) {
-                // DTO로 변환하여 반환 (사용자 정보는 전체 조회로 가져와야 함)
-                List<CardFlipResultDTO> results = cardFlipResultDAO.findAllByGameRoomId(gameRoomId);
-                savedResultDTO = results.stream()
-                        .filter(r -> r.getUserId().equals(userId))
-                        .findFirst()
-                        .orElse(null);
-            }
-            
-            // 6. 게임 종료 확인: 모든 플레이어가 게임을 완료했는지 확인
-            int totalPlayers = players.size();
-            int completedPlayers = allResults.size(); // 완료한 플레이어 수 (matchedPairs == 10인 플레이어)
-            
-            log.info("게임 완료 상태 확인 - gameRoomId: {}, totalPlayers: {}, completedPlayers: {}", 
-                    gameRoomId, totalPlayers, completedPlayers);
-            
-            // 모든 플레이어가 게임을 완료했으면 기록 삭제
-            if (completedPlayers >= totalPlayers) {
-                log.info("모든 플레이어 게임 완료 - 게임방 기록 삭제 시작 - gameRoomId: {}", 
-                        gameRoomId);
-                cardFlipResultDAO.deleteAllByGameRoomId(gameRoomId);
-                log.info("게임방 기록 삭제 완료 - gameRoomId: {}", gameRoomId);
-            }
-            
-            // 저장된 결과 반환 (삭제 전에 조회한 결과)
-            return savedResultDTO;
+        if (allResults == null || allResults.isEmpty()) {
+            log.warn("순위 계산 실패 - 결과가 없음. gameRoomId: {}", gameRoomId);
+            return;
         }
 
-        // 경험치를 지급하지 않은 경우에도 저장된 결과 조회하여 반환
-        CardFlipResultVO queryVO = new CardFlipResultVO();
-        queryVO.setUserId(userId);
-        queryVO.setGameRoomId(gameRoomId);
-        Optional<CardFlipResultVO> savedResult = cardFlipResultDAO.findByUserIdAndGameRoomId(queryVO);
-        if (savedResult.isPresent()) {
-            // DTO로 변환하여 반환 (사용자 정보는 전체 조회로 가져와야 함)
-            List<CardFlipResultDTO> results = cardFlipResultDAO.findAllByGameRoomId(gameRoomId);
-            return results.stream()
-                    .filter(r -> r.getUserId().equals(userId))
-                    .findFirst()
-                    .orElse(null);
+        // 순위 계산 (1등부터 시작)
+        int rank = 1;
+        for (CardFlipResultDTO result : allResults) {
+            if (result.getUserId() == null) {
+                log.warn("순위 업데이트 건너뜀 - userId가 null. result: {}", result);
+                continue;
+            }
+            
+            // 순위 업데이트
+            CardFlipResultVO updateVO = new CardFlipResultVO();
+            updateVO.setUserId(result.getUserId());
+            updateVO.setGameRoomId(gameRoomId);
+            updateVO.setCardFlipResultRankInRoom(rank);
+
+            try {
+                cardFlipResultDAO.updateRank(updateVO);
+            } catch (Exception e) {
+                log.error("순위 업데이트 실패 - userId: {}, rank: {}, error: {}", 
+                        result.getUserId(), rank, e.getMessage(), e);
+            }
+            rank++;
+        }
+    }
+
+    /**
+     * 게임 완료 처리 (경험치 지급만, 삭제는 하지 않음)
+     */
+    private void handleGameCompletionWithoutDelete(Long userId, Long gameRoomId) {
+        // 1. 순위 확인
+        List<CardFlipResultDTO> allResults = cardFlipResultDAO.findAllByGameRoomId(gameRoomId);
+        int myRank = 999;
+
+        for (CardFlipResultDTO result : allResults) {
+            if (result.getUserId() != null && result.getUserId().equals(userId)) {
+                if (result.getCardFlipResultRankInRoom() != null) {
+                    myRank = result.getCardFlipResultRankInRoom();
+                }
+                break;
+            }
         }
 
-        return null;
+        // 2. 경험치 계산
+        int expGain = 50; // 기본 경험치
+        if (myRank == 1) {
+            expGain = 20;
+        } else if (myRank == 2) {
+            expGain = 15;
+        } else if (myRank == 3) {
+            expGain = 10;
+        }
+
+        // 3. 유저 경험치 업데이트
+        userService.gainExp(userId, expGain);
+
+        // 4. 모든 플레이어 완료 확인 및 기록 삭제
+        List<GameJoinDTO> players = gameJoinService.getPlayers(gameRoomId);
+        int totalPlayers = players.size();
+        int completedPlayers = allResults.size();
+
+        // 모든 플레이어가 완료했으면 기록 삭제 (비동기로 처리하거나 나중에 삭제)
+        if (completedPlayers >= totalPlayers) {
+            // 결과 반환 후 삭제하기 위해 별도 스레드에서 처리
+            new Thread(() -> {
+                try {
+                    Thread.sleep(1000); // 1초 대기 후 삭제
+                    cardFlipResultDAO.deleteAllByGameRoomId(gameRoomId);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.error("기록 삭제 중 인터럽트 발생", e);
+                } catch (Exception e) {
+                    log.error("기록 삭제 중 오류 발생", e);
+                }
+            }).start();
+        }
     }
 
     @Override
     public List<CardFlipResultDTO> findAllByGameRoomId(Long gameRoomId) {
-        log.info("카드 뒤집기 결과 조회 - gameRoomId: {}", gameRoomId);
         return cardFlipResultDAO.findAllByGameRoomId(gameRoomId);
     }
 
     @Override
     public void deleteAllByGameRoomId(Long gameRoomId) {
-        log.info("카드 뒤집기 결과 삭제 - gameRoomId: {}", gameRoomId);
         cardFlipResultDAO.deleteAllByGameRoomId(gameRoomId);
     }
-}
 
+    /**
+     * VO를 기반으로 DTO 생성 (사용자 정보 및 게임방 정보 포함)
+     */
+    private CardFlipResultDTO buildDTOFromVO(CardFlipResultVO vo, Long gameRoomId) {
+        try {
+            CardFlipResultDTO dto = new CardFlipResultDTO();
+            dto.setId(vo.getId());
+            dto.setUserId(vo.getUserId());
+            dto.setGameRoomId(vo.getGameRoomId());
+            dto.setCardFlipResultFinishTime(vo.getCardFlipResultFinishTime());
+            dto.setCardFlipResultMatchedPairs(vo.getCardFlipResultMatchedPairs());
+            dto.setCardFlipResultRankInRoom(vo.getCardFlipResultRankInRoom());
+            dto.setCardFlipResultCreateAt(vo.getCardFlipResultCreateAt());
+
+            // 사용자 정보 조회
+            try {
+                UserResponseDTO user = userService.getUserById(vo.getUserId());
+                dto.setUserNickname(user.getUserNickname());
+                dto.setUserThumbnailName(user.getUserThumbnailName());
+                dto.setUserThumbnailUrl(user.getUserThumbnailUrl());
+                dto.setUserLevel(user.getUserLevel());
+                dto.setUserExp(user.getUserExp());
+            } catch (Exception e) {
+                log.warn("사용자 정보 조회 실패 - userId: {}, error: {}", vo.getUserId(), e.getMessage());
+            }
+
+            // 게임방 정보 조회
+            try {
+                var gameRoom = gameRoomService.getRoom(gameRoomId);
+                if (gameRoom != null) {
+                    dto.setGameRoomMaxPlayer(gameRoom.getGameRoomMaxPlayer());
+                }
+            } catch (Exception e) {
+                log.warn("게임방 정보 조회 실패 - gameRoomId: {}, error: {}", gameRoomId, e.getMessage());
+            }
+
+            return dto;
+        } catch (Exception e) {
+            log.error("DTO 생성 실패 - vo: {}, error: {}", vo, e.getMessage(), e);
+            return null;
+        }
+    }
+}

@@ -25,4 +25,9 @@ public class SubcommentDAO {
     public void removeSubcomment(Long id) {
         subcommentMapper.delete(id);
     }
+
+    // 댓글 ID로 대댓글들 삭제
+    public void removeSubcommentsByCommentId(Long commentId) {
+        subcommentMapper.deleteByCommentId(commentId);
+    }
 }

@@ -13,4 +13,9 @@ public class SubcommentDTO {
     private Date subcommentCreateAt;
     private String subcommentDescription;
     private String userNickname;
+
+    private String userThumbnailName;
+    private String userThumbnailUrl;
+
+
 }

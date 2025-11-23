@@ -31,6 +31,12 @@
         AND COMMENT_ID = #{commentId} AND ID = #{id}
     </delete>
 
+    <!-- 댓글 ID로 댓글 좋아요들 삭제 -->
+    <delete id="deleteByCommentId" parameterType="Long">
+        DELETE FROM TBL_COMMENT_LIKE
+        WHERE COMMENT_ID = #{commentId}
+    </delete>
+
 
 
 

@@ -34,6 +34,11 @@ public class CommentLikeDAO {
     public void remove2(CommentLikeVO commentLikeVO) {
         commentLikeMapper.deleteByUserAndComment(commentLikeVO);
     }
+
+    // 댓글 ID로 댓글 좋아요들 삭제
+    public void removeByCommentId(Long commentId) {
+        commentLikeMapper.deleteByCommentId(commentId);
+    }
 //    int selectByPostIdcount (Long commentId);
 
 

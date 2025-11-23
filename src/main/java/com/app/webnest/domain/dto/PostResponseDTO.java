@@ -18,6 +18,10 @@ public class PostResponseDTO {
     private Long userId;
     private String postType;
     private String userNickname;
+    
+    // 프로필 이미지 필드 추가
+    private String userThumbnailUrl;
+    private String userThumbnailName;
 
     //
     private Integer postLikeCount;

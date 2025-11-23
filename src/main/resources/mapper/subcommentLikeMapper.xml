@@ -31,6 +31,10 @@
         AND SUBCOMMENT_ID = #{subcommentId} AND ID = #{id}
     </delete>
 
-  
+    <!-- 대댓글 ID로 대댓글 좋아요들 삭제 -->
+    <delete id="deleteBySubcommentId" parameterType="Long">
+        DELETE FROM TBL_SUBCOMMENT_LIKE
+        WHERE SUBCOMMENT_ID = #{subcommentId}
+    </delete>
 
 </mapper>

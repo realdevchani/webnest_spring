@@ -16,6 +16,9 @@ public interface SubcommentMapper {
     
     // 대댓글 삭제
     void delete(Long id);
+    
+    // 댓글 ID로 대댓글들 삭제
+    void deleteByCommentId(Long commentId);
 }
 //// 게시글 상세조회
 //public Optional<PostDTO> selectOne(Long id);

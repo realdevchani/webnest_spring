@@ -1,33 +1,47 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.app.webnest.mapper.CardFlipResultMapper">
-    <!-- 카드 뒤집기(cardflip) 게임 결과 관련 Mapper -->
+    <!-- 카드 뒤집기 게임 결과 관련 Mapper -->
 
     <!-- 카드 뒤집기 결과 저장 -->
     <insert id="insert" parameterType="CardFlipResultVO">
         INSERT INTO TBL_CARDFLIP_RESULT (
-            ID, USER_ID, GAME_ROOM_ID, FINISH_TIME, MATCHED_PAIRS, SCORE, RANK_IN_ROOM, CREATED_AT
+            ID,
+            USER_ID,
+            GAME_ROOM_ID,
+            CARD_FLIP_RESULT_FINISH_TIME,
+            CARD_FLIP_RESULT_MATCHED_PAIRS,
+            CARD_FLIP_RESULT_RANK_IN_ROOM,
+            CARD_FLIP_RESULT_CREATE_AT
         ) VALUES (
             SEQ_CARDFLIP_RESULT.NEXTVAL,
             #{userId},
             #{gameRoomId},
-            #{finishTime},
-            #{matchedPairs},
-            #{score},
-            #{rankInRoom},
+            #{cardFlipResultFinishTime},
+            #{cardFlipResultMatchedPairs},
+            #{cardFlipResultRankInRoom},
             SYSTIMESTAMP
         )
     </insert>
 
-    <!-- 카드 뒤집기 결과 업데이트 (같은 사용자가 같은 방에서 다시 완료한 경우) -->
+    <!-- 카드 뒤집기 결과 업데이트 -->
     <update id="update" parameterType="CardFlipResultVO">
         UPDATE TBL_CARDFLIP_RESULT
         SET
-            FINISH_TIME = #{finishTime},
-            MATCHED_PAIRS = #{matchedPairs},
-            SCORE = #{score},
-            RANK_IN_ROOM = #{rankInRoom},
-            CREATED_AT = SYSTIMESTAMP
+            CARD_FLIP_RESULT_FINISH_TIME = #{cardFlipResultFinishTime},
+            CARD_FLIP_RESULT_MATCHED_PAIRS = #{cardFlipResultMatchedPairs},
+            CARD_FLIP_RESULT_RANK_IN_ROOM = #{cardFlipResultRankInRoom},
+            CARD_FLIP_RESULT_CREATE_AT = SYSTIMESTAMP
+        WHERE
+            USER_ID = #{userId}
+            AND GAME_ROOM_ID = #{gameRoomId}
+    </update>
+
+    <!-- 순위만 업데이트 -->
+    <update id="updateRank" parameterType="CardFlipResultVO">
+        UPDATE TBL_CARDFLIP_RESULT
+        SET
+            CARD_FLIP_RESULT_RANK_IN_ROOM = #{cardFlipResultRankInRoom}
         WHERE
             USER_ID = #{userId}
             AND GAME_ROOM_ID = #{gameRoomId}
@@ -36,45 +50,42 @@
     <!-- 게임방 내 모든 결과 조회 (순위 포함, 사용자 정보 JOIN, 완료 시간 순 정렬) -->
     <select id="selectAllByGameRoomId" parameterType="Long" resultType="CardFlipResultDTO">
         SELECT
-            CFR.ID,
-            CFR.USER_ID,
-            CFR.GAME_ROOM_ID,
-            CFR.FINISH_TIME,
-            CFR.MATCHED_PAIRS,
-            CFR.SCORE,
-            CFR.RANK_IN_ROOM,
-            CFR.CREATED_AT,
-            U.USER_NICKNAME,
-            U.USER_THUMBNAIL_URL,
-            U.USER_LEVEL,
-            U.USER_EXP
-        FROM (
-            SELECT
-                CFR.*,
-                ROW_NUMBER() OVER (ORDER BY CFR.FINISH_TIME ASC, CFR.CREATED_AT ASC) AS RNK
-            FROM TBL_CARDFLIP_RESULT CFR
-            WHERE CFR.GAME_ROOM_ID = #{gameRoomId}
-              AND CFR.MATCHED_PAIRS = 10  -- 완료한 사람만 (10쌍 모두 매칭)
-        ) CFR
+            CFR.ID AS id,
+            CFR.USER_ID AS userId,
+            CFR.GAME_ROOM_ID AS gameRoomId,
+            CFR.CARD_FLIP_RESULT_FINISH_TIME AS cardFlipResultFinishTime,
+            CFR.CARD_FLIP_RESULT_MATCHED_PAIRS AS cardFlipResultMatchedPairs,
+            CFR.CARD_FLIP_RESULT_RANK_IN_ROOM AS cardFlipResultRankInRoom,
+            CFR.CARD_FLIP_RESULT_CREATE_AT AS cardFlipResultCreateAt,
+            U.USER_NICKNAME AS userNickname,
+            U.USER_THUMBNAIL_NAME AS userThumbnailName,
+            U.USER_THUMBNAIL_URL AS userThumbnailUrl,
+            U.USER_LEVEL AS userLevel,
+            U.USER_EXP AS userExp,
+            GR.GAME_ROOM_MAX_PLAYER AS gameRoomMaxPlayer
+        FROM TBL_CARDFLIP_RESULT CFR
         JOIN TBL_USER U ON CFR.USER_ID = U.ID
-        ORDER BY CFR.FINISH_TIME ASC, CFR.CREATED_AT ASC
+        JOIN TBL_GAME_ROOM GR ON CFR.GAME_ROOM_ID = GR.ID
+        WHERE CFR.GAME_ROOM_ID = #{gameRoomId}
+          AND CFR.CARD_FLIP_RESULT_MATCHED_PAIRS = 10
+        ORDER BY CFR.CARD_FLIP_RESULT_FINISH_TIME ASC, CFR.CARD_FLIP_RESULT_CREATE_AT ASC
     </select>
 
     <!-- 특정 사용자의 특정 방 결과 조회 -->
     <select id="selectByUserIdAndGameRoomId" parameterType="CardFlipResultVO" resultType="CardFlipResultVO">
         SELECT
-            ID,
-            USER_ID,
-            GAME_ROOM_ID,
-            FINISH_TIME,
-            MATCHED_PAIRS,
-            SCORE,
-            RANK_IN_ROOM,
-            CREATED_AT
+            ID AS id,
+            USER_ID AS userId,
+            GAME_ROOM_ID AS gameRoomId,
+            CARD_FLIP_RESULT_FINISH_TIME AS cardFlipResultFinishTime,
+            CARD_FLIP_RESULT_MATCHED_PAIRS AS cardFlipResultMatchedPairs,
+            CARD_FLIP_RESULT_RANK_IN_ROOM AS cardFlipResultRankInRoom,
+            CARD_FLIP_RESULT_CREATE_AT AS cardFlipResultCreateAt
         FROM TBL_CARDFLIP_RESULT
         WHERE USER_ID = #{userId}
           AND GAME_ROOM_ID = #{gameRoomId}
           AND ROWNUM = 1
+        ORDER BY CARD_FLIP_RESULT_CREATE_AT DESC
     </select>
 
     <!-- 게임방의 결과 개수 조회 (순위 계산용) -->
@@ -82,14 +93,13 @@
         SELECT COUNT(*)
         FROM TBL_CARDFLIP_RESULT
         WHERE GAME_ROOM_ID = #{gameRoomId}
-          AND MATCHED_PAIRS = 10  -- 완료한 사람만
+          AND CARD_FLIP_RESULT_MATCHED_PAIRS = 10
     </select>
 
-    <!-- 게임방의 모든 결과 삭제 (게임방 삭제 시) -->
+    <!-- 게임방의 모든 결과 삭제 -->
     <delete id="deleteAllByGameRoomId" parameterType="Long">
         DELETE FROM TBL_CARDFLIP_RESULT
         WHERE GAME_ROOM_ID = #{gameRoomId}
     </delete>
 
 </mapper>
-

@@ -27,4 +27,9 @@ public class SubcommentLikeDAO {
         subcommentLikeMapper.deleteByUserAndSubcomment(subcommentLikeVO);
     }
 
+    // 대댓글 ID로 대댓글 좋아요들 삭제
+    public void removeBySubcommentId(Long subcommentId) {
+        subcommentLikeMapper.deleteBySubcommentId(subcommentId);
+    }
+
 }

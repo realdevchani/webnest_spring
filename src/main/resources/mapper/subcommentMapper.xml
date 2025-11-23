@@ -3,7 +3,15 @@
 <mapper namespace="com.app.webnest.mapper.SubcommentMapper">
 
     <select id="selectSubcomment" parameterType="Long" resultType="SubcommentDTO" >
-        SELECT TBS.ID, TBS.SUBCOMMENT_DESCRIPTION, TBS.COMMENT_ID, TBU.USER_NICKNAME, TBS.USER_ID, TBS.SUBCOMMENT_CREATE_AT
+        SELECT 
+        TBS.ID, 
+        TBS.SUBCOMMENT_DESCRIPTION, 
+        TBS.COMMENT_ID, 
+        TBU.USER_NICKNAME, 
+        TBS.USER_ID, 
+        TBS.SUBCOMMENT_CREATE_AT,
+        TBU.USER_THUMBNAIL_URL as userThumbnailUrl,
+        TBU.USER_THUMBNAIL_NAME as userThumbnailName
         FROM TBL_SUBCOMMENT TBS
         JOIN TBL_USER TBU
         ON TBS.USER_ID = TBU.ID
@@ -23,6 +31,12 @@
     <delete id="delete" parameterType="Long">
         DELETE FROM TBL_SUBCOMMENT
         WHERE ID = #{id}
+    </delete>
+
+    <!-- 댓글 ID로 대댓글들 삭제 -->
+    <delete id="deleteByCommentId" parameterType="Long">
+        DELETE FROM TBL_SUBCOMMENT
+        WHERE COMMENT_ID = #{commentId}
     </delete>
 </mapper>
 

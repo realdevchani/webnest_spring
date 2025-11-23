@@ -17,5 +17,7 @@ public interface SubcommentLikeMapper {
 
     void deleteByUserAndSubcomment(SubcommentLikeVO subcommentLikeVO);
 
+    // 대댓글 ID로 대댓글 좋아요들 삭제
+    void deleteBySubcommentId(Long subcommentId);
 
 }
