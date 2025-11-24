@@ -33,25 +33,13 @@ public class PostServiceImpl implements PostService {
         int likeCount = postDAO.getPostLikeCount(id);
         post.setPostLikeCount(likeCount);
 
-        // 🔥 로그인 유저가 좋아요 눌렀는지 여부
+        //  로그인 유저가 좋아요 눌렀는지 여부
         boolean liked = postDAO.isPostLiked(id, userId);
         post.setLiked(liked);   // DTO에 넣어주기
 
         return post;
     }
 
-
-
-//    @Override
-//    public PostResponseDTO getPostWithoutView(Long id) {
-//        PostResponseDTO post = postDAO.findPost(id)
-//                .orElseThrow(() -> new PostException("Post Not Found"));
-//
-//        int likeCount = postDAO.getPostLikeCount(id);
-//        post.setPostLikeCount(likeCount);
-//
-//        return post;
-//    }
     @Override
     public PostResponseDTO getPostWithoutView(Long id, Long userId) {
 
