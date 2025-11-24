@@ -20,5 +20,6 @@ public class PostLikeDTO {
     // 작성자 정보
     private String userNickname;
     private String userThumbnailUrl;
+    private String userThumbnailName;
     private Integer commentCount;
 }
