@@ -64,7 +64,6 @@
         SELECT
             ID AS id,
             USER_ID AS userId,
-            GAME_ROOM_ID AS gameRoomId,
             CARD_FLIP_RESULT_FINISH_TIME AS cardFlipResultFinishTime,
             CARD_FLIP_RESULT_MATCHED_PAIRS AS cardFlipResultMatchedPairs,
             CARD_FLIP_RESULT_RANK_IN_ROOM AS cardFlipResultRankInRoom,
