@@ -29,7 +29,9 @@ public class FileApi {
     @PostMapping("upload")
     @ResponseBody
     public List<String> upload(@RequestParam("uploadFile") List<MultipartFile> uploadFiles) throws IOException {
-        String rootPath = "C:/upload/" + getPath();
+        String path = getPath();
+        String rootPath = "C:/upload/" + path;
+        log.info("파일 업로드 경로: {}", rootPath);
 
         List<String> uuids = new ArrayList<>();
 
@@ -37,6 +39,7 @@ public class FileApi {
         File file = new File(rootPath);
         if(!file.exists()){
             file.mkdirs();
+            log.info("디렉터리 생성 완료: {}", rootPath);
         }
 
         for(int i = 0; i < uploadFiles.size(); i++){
@@ -57,7 +60,7 @@ public class FileApi {
         return uuids;
     }
 
-    private String getPath(){return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));}
+    private String getPath(){return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd/"));}
 
     // 로드
     @GetMapping("display")

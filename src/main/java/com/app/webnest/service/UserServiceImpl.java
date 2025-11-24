@@ -31,6 +31,7 @@ public class UserServiceImpl implements UserService {
   private final FollowDAO followDAO;
   private final PostLikeDAO postLikeDAO;
   private final TypingRecordDAO  typingRecordDAO;
+  private final CommentDAO commentDAO;
 
     // 이메일 중복 조회
   @Override
@@ -195,6 +196,11 @@ public class UserServiceImpl implements UserService {
         List<FollowDTO> followers = followDAO.findFollowersByUserId(id);
         // 팔로잉
         List<FollowDTO> following = followDAO.findFollowingByUserId(id);
+        // 타자 기록
+        List<TypingRecordDTO> records = typingRecordDAO.getRecordsByUser(id);
+        // 채택된 답변으로 얻은 총 경험치 (채택당 5 exp)
+        Integer answerExp = commentDAO.selectTotalAnswerExpByUserId(id);
+        
         myDatas.put("openPosts", openPosts);
         myDatas.put("questionPosts", questionPosts);
         myDatas.put("openLikePosts", openLikePosts);
@@ -203,6 +209,8 @@ public class UserServiceImpl implements UserService {
         myDatas.put("following", following);
         myDatas.put("quizMyPage", quizMyPage);
         myDatas.put("quizMyPageLanguage", quizMyPageLanguage);
+        myDatas.put("records", records);
+        myDatas.put("answerExp", answerExp);
         return myDatas;
     }
 

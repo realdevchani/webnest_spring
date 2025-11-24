@@ -159,9 +159,9 @@ public class CardFlipResultServiceImpl implements CardFlipResultService {
         // 2. 경험치 계산
         int expGain = 50; // 기본 경험치
         if (myRank == 1) {
-            expGain = 20;
+            expGain = 100;
         } else if (myRank == 2) {
-            expGain = 15;
+            expGain = 150;
         } else if (myRank == 3) {
             expGain = 10;
         }
@@ -179,7 +179,7 @@ public class CardFlipResultServiceImpl implements CardFlipResultService {
             // 결과 반환 후 삭제하기 위해 별도 스레드에서 처리
             new Thread(() -> {
                 try {
-                    Thread.sleep(1000); // 1초 대기 후 삭제
+                    Thread.sleep(1000000); // 1초 대기 후 삭제
                     cardFlipResultDAO.deleteAllByGameRoomId(gameRoomId);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();

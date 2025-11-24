@@ -5,23 +5,11 @@
 
     <!-- 카드 뒤집기 결과 저장 -->
     <insert id="insert" parameterType="CardFlipResultVO">
-        INSERT INTO TBL_CARDFLIP_RESULT (
-            ID,
-            USER_ID,
-            GAME_ROOM_ID,
-            CARD_FLIP_RESULT_FINISH_TIME,
-            CARD_FLIP_RESULT_MATCHED_PAIRS,
-            CARD_FLIP_RESULT_RANK_IN_ROOM,
-            CARD_FLIP_RESULT_CREATE_AT
-        ) VALUES (
-            SEQ_CARDFLIP_RESULT.NEXTVAL,
-            #{userId},
-            #{gameRoomId},
-            #{cardFlipResultFinishTime},
-            #{cardFlipResultMatchedPairs},
-            #{cardFlipResultRankInRoom},
-            SYSTIMESTAMP
-        )
+        INSERT INTO TBL_CARDFLIP_RESULT ( ID, USER_ID, GAME_ROOM_ID, CARD_FLIP_RESULT_FINISH_TIME,
+                            CARD_FLIP_RESULT_MATCHED_PAIRS, CARD_FLIP_RESULT_RANK_IN_ROOM,
+                            CARD_FLIP_RESULT_CREATE_AT )
+        VALUES ( SEQ_CARDFLIP_RESULT.NEXTVAL, #{userId}, #{gameRoomId}, #{cardFlipResultFinishTime},
+                #{cardFlipResultMatchedPairs}, #{cardFlipResultRankInRoom}, SYSTIMESTAMP )
     </insert>
 
     <!-- 카드 뒤집기 결과 업데이트 -->

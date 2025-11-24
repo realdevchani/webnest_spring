@@ -28,4 +28,7 @@ public interface CommentMapper {
     //채택
     public void acceptComment(@Param("commentId") Long commentId);
 
+    // 채택된 답변으로 얻은 총 exp 조회
+    public Integer selectTotalAnswerExpByUserId(@Param("userId") Long userId);
+
 }

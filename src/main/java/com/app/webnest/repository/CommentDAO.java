@@ -46,4 +46,9 @@ public class CommentDAO {
     public void choose(Long commentId) {
         commentMapper.acceptComment(commentId);
     }
+
+    // 채택된 답변으로 얻은 총 exp 조회
+    public Integer selectTotalAnswerExpByUserId(Long userId) {
+        return commentMapper.selectTotalAnswerExpByUserId(userId);
+    }
 }
