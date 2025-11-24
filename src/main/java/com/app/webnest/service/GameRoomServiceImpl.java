@@ -63,7 +63,7 @@ public class GameRoomServiceImpl implements GameRoomService {
         Optional<GameRoomDTO> roomOpt = gameRoomDAO.getRoom(id);
         if (roomOpt.isEmpty()) {
             log.error("게임방을 찾을 수 없습니다 - id: {}", id);
-            throw new RuntimeException("게임방을 찾을 수 없습니다. ID: " + id);
+            throw new RoomException("게임방을 찾을 수 없습니다. ID: " + id);
         }
         GameRoomDTO room = roomOpt.get();
         log.info("게임방 조회 성공 - id: {}, title: {}", id, room.getGameRoomTitle());

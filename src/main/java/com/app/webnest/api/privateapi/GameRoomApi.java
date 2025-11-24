@@ -58,26 +58,11 @@ public class GameRoomApi {
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("게임방 조회 성공", room));
         } catch (Exception e) {
             log.error("게임방 조회 실패 - id: {}, error: {}", id, e.getMessage(), e);
-            throw e;
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponseDTO.of("게임방을 찾을 수 없습니다. ID: " + id, null));
         }
     }
 
-    /**
-     * 프론트엔드 호환성을 위한 게임방 조회 엔드포인트
-     * GET /game-room/{id}
-     * 절대 경로로 지정하여 클래스 레벨 매핑 무시
-     */
-    @RequestMapping(value = "/game-room/{id}", method = RequestMethod.GET)
-    public ResponseEntity<ApiResponseDTO<GameRoomDTO>> getRoomByLegacyPath(@PathVariable Long id) {
-        log.info("게임방 단일 조회 요청 (레거시 경로) - id: {}", id);
-        try {
-            GameRoomDTO room = gameRoomService.getRoom(id);
-            return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDTO.of("게임방 조회 성공", room));
-        } catch (Exception e) {
-            log.error("게임방 조회 실패 - id: {}, error: {}", id, e.getMessage(), e);
-            throw e;
-        }
-    }
 
     /**
      * 게임 상태 조회 (플레이어 위치, 턴, 레디 상태 등)
