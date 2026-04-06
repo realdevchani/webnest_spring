@@ -1,53 +1,100 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.app.webnest.mapper.SearchMapper">
-
-    <!--    승찬 기생중 -->
     <select id="selectByQuery" resultType="UserVO" parameterType="String">
         SELECT ID, USER_NAME, USER_BIRTHDAY, USER_EMAIL, USER_PHONE, USER_EXP, USER_LEVEL, USER_THUMBNAIL_NAME, USER_THUMBNAIL_URL, USER_NICKNAME, USER_PASSWORD
         FROM TBL_USER
         WHERE USER_NICKNAME LIKE '%'||#{query}||'%'
     </select>
-    <select id="selectQuestionPostQByQuery" resultType="PostSearchDTO" parameterType="String">
-        SELECT TBP.ID, TBP.POST_TITLE, TBP.POST_CONTENT,
-            TBP.POST_CREATE_AT, TBP.POST_VIEW_COUNT, TBP.POST_TYPE, TBP.USER_ID,
-            TBU.USER_LEVEL, TBU.USER_THUMBNAIL_URL, TBU.USER_NICKNAME, TBU.USER_THUMBNAIL_NAME,
+    <select id="selectQuestionPostCandidates" resultType="PostSearchDTO">
+        SELECT
+            TBP.ID,
+            TBP.POST_TITLE,
+            TBP.POST_CONTENT,
+            TBP.POST_CREATE_AT,
+            TBP.POST_VIEW_COUNT,
+            TBP.POST_TYPE,
+            TBP.USER_ID,
+            TBU.USER_LEVEL,
+            TBU.USER_THUMBNAIL_URL,
+            TBU.USER_NICKNAME,
+            TBU.USER_THUMBNAIL_NAME,
             COUNT(TBC.ID) AS COMMENT_COUNT
-        FROM (
-            SELECT ID, POST_TITLE, POST_CONTENT, POST_CREATE_AT, POST_VIEW_COUNT,
-            POST_TYPE, USER_ID FROM TBL_POST
-            WHERE POST_TYPE = 'JS' OR POST_TYPE = 'JAVA' OR POST_TYPE = 'ORACLE'
-        ) TBP
+        FROM TBL_POST TBP
         JOIN TBL_USER TBU
         ON TBP.USER_ID = TBU.ID
         LEFT JOIN TBL_COMMENT TBC
         ON TBP.ID = TBC.POST_ID
-        GROUP BY TBP.ID, TBP.POST_TITLE, TBP.POST_CONTENT, TBP.POST_CREATE_AT,
-            TBP.POST_VIEW_COUNT, TBP.POST_TYPE, TBP.USER_ID, TBU.USER_NICKNAME,
-            TBU.USER_LEVEL, TBU.USER_THUMBNAIL_URL, TBU.USER_THUMBNAIL_NAME
-        HAVING TBP.POST_CONTENT LIKE '%'||#{query}||'%'
-        OR TBP.POST_TITLE LIKE '%'||#{query}||'%'
-        ORDER BY TBP.ID
+        WHERE TBP.POST_TYPE IN ('JS', 'JAVA', 'ORACLE')
+            AND (
+                LOWER(TBP.POST_TITLE) LIKE '%' || LOWER(#{fullKeyword}) || '%'
+                OR LOWER(TBP.POST_CONTENT) LIKE '%' || LOWER(#{fullKeyword}) || '%'
+
+                <if test="keywordList != null and keywordList.size() > 0">
+                    <foreach collection="keywordList" item="keyword">
+                        OR LOWER(TBP.POST_TITLE) LIKE '%' || LOWER(#{keyword}) || '%'
+                        OR LOWER(TBP.POST_CONTENT) LIKE '%' || LOWER(#{keyword}) || '%'
+                    </foreach>
+                </if>
+                )
+        GROUP BY
+            TBP.ID, TBP.POST_TITLE, TBP.POST_CONTENT, TBP.POST_CREATE_AT,
+            TBP.POST_VIEW_COUNT, TBP.POST_TYPE, TBP.USER_ID,
+            TBU.USER_LEVEL, TBU.USER_THUMBNAIL_URL,
+            TBU.USER_NICKNAME, TBU.USER_THUMBNAIL_NAME
+        ORDER BY TBP.POST_CREATE_AT DESC
     </select>
-    <select id="selectOpenPostQByQuery" resultType="PostSearchDTO" parameterType="String">
-        SELECT TBP.ID, TBP.POST_TITLE, TBP.POST_CONTENT,
-            TBP.POST_CREATE_AT AS "POST", TBP.POST_VIEW_COUNT, TBP.POST_TYPE, TBP.USER_ID,
-            TBU.USER_LEVEL, TBU.USER_THUMBNAIL_URL, TBU.USER_NICKNAME, TBU.USER_THUMBNAIL_NAME,
+
+<!--    열린 둥지 검색 값-->
+    <select id="selectOpenPostCandidates"
+            resultType="PostSearchDTO"
+            >
+        SELECT
+            TBP.ID,
+            TBP.POST_TITLE,
+            TBP.POST_CONTENT,
+            TBP.POST_CREATE_AT,
+            TBP.POST_VIEW_COUNT,
+            TBP.POST_TYPE,
+            TBP.USER_ID,
+            TBU.USER_LEVEL,
+            TBU.USER_THUMBNAIL_URL,
+            TBU.USER_NICKNAME,
+            TBU.USER_THUMBNAIL_NAME,
             COUNT(TBC.ID) AS COMMENT_COUNT
-        FROM (
-            SELECT ID, POST_TITLE, POST_CONTENT, POST_CREATE_AT, POST_VIEW_COUNT,
-            POST_TYPE, USER_ID FROM TBL_POST WHERE POST_TYPE = 'OPEN'
-        ) TBP
+        FROM TBL_POST TBP
         JOIN TBL_USER TBU
         ON TBP.USER_ID = TBU.ID
         LEFT JOIN TBL_COMMENT TBC
         ON TBP.ID = TBC.POST_ID
-        GROUP BY TBP.ID, TBP.POST_TITLE, TBP.POST_CONTENT, TBP.POST_CREATE_AT,
-            TBP.POST_VIEW_COUNT, TBP.POST_TYPE, TBP.USER_ID, TBU.USER_NICKNAME, TBU.USER_THUMBNAIL_NAME,
-            TBU.USER_LEVEL, TBU.USER_THUMBNAIL_URL
-        HAVING TBP.POST_CONTENT LIKE '%'||#{query}||'%'
-        OR TBP.POST_TITLE LIKE '%'||#{query}||'%' ORDER BY TBP.ID
+        WHERE TBP.POST_TYPE = 'OPEN'
+            AND (
+                LOWER(TBP.POST_TITLE) LIKE '%' || LOWER(#{fullKeyword}) || '%'
+                OR LOWER(TBP.POST_CONTENT) LIKE '%' || LOWER(#{fullKeyword}) || '%'
+                <if test="keywordList != null and keywordList.size() > 0">
+                    <foreach collection="keywordList" item="keyword">
+                        OR LOWER(TBP.POST_TITLE) LIKE '%' || LOWER(#{keyword}) || '%'
+                        OR LOWER(TBP.POST_CONTENT) LIKE '%' || LOWER(#{keyword}) || '%'
+                    </foreach>
+                </if>
+                )
+        GROUP BY
+            TBP.ID,
+            TBP.POST_TITLE,
+            TBP.POST_CONTENT,
+            TBP.POST_CREATE_AT,
+            TBP.POST_VIEW_COUNT,
+            TBP.POST_TYPE,
+            TBP.USER_ID,
+            TBU.USER_LEVEL,
+            TBU.USER_THUMBNAIL_URL,
+            TBU.USER_NICKNAME,
+            TBU.USER_THUMBNAIL_NAME
+        ORDER BY TBP.POST_CREATE_AT DESC
     </select>
+
+
+    <!--  문제 검색 값  -->
     <select id="selectQuizByQuery" resultType="QuizVO" parameterType="String">
         SELECT ID, QUIZ_TITLE, QUIZ_DESCRIPTION, QUIZ_CATEGORY, QUIZ_EXPECTATION, QUIZ_EXP, QUIZ_DIFFICULT, QUIZ_LANGUAGE
         FROM TBL_QUIZ
@@ -55,6 +102,4 @@
             OR QUIZ_CATEGORY LIKE '%'||#{query}||'%' OR QUIZ_EXPECTATION LIKE '%'||#{query}||'%'
             OR QUIZ_DIFFICULT LIKE '%'||#{query}||'%' OR QUIZ_LANGUAGE LIKE '%'||#{query}||'%'
     </select>
-
-    <!--    승찬 기생중 -->
 </mapper>

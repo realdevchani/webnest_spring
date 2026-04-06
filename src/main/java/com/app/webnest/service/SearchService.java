@@ -16,4 +16,8 @@ public interface SearchService {
     public List<QuizVO> getQuizBySearchQuery(String searchQuery);
 
     public List<UserVO> getUserBySearchQuery(String searchQuery);
+
+    public List<PostSearchDTO> searchQuestionPosts(String rawKeyword);
+
+    public List<PostSearchDTO> searchOpenPosts(String rawKeyword);
 }

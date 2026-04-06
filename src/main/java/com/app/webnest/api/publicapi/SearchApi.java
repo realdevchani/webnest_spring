@@ -24,59 +24,41 @@ import java.util.stream.Collectors;
 public class SearchApi {
     private final SearchService searchService;
 
-    @GetMapping
-    public ResponseEntity<ApiResponseDTO> searchResult(@RequestParam(value = "search", required = false) String[] queries) {
-        if (queries == null || queries.length == 0) {
-            Map<String, Object> emptyResult = new HashMap<>();
-            emptyResult.put("search", queries);
-            emptyResult.put("openPosts", new ArrayList<>());
-            emptyResult.put("questionPosts", new ArrayList<>());
-            emptyResult.put("quizzes", new ArrayList<>());
-            emptyResult.put("users", new ArrayList<>());
-            return ResponseEntity.ok(ApiResponseDTO.of("검색 결과", emptyResult));
-        }
-
+    public Map<String, Object> createEmptyResult(String query){
         Map<String, Object> result = new HashMap<>();
-        List<PostSearchDTO> openPosts = new ArrayList<>();
-        List<PostSearchDTO> questionPosts = new ArrayList<>();
-        List<QuizVO> quizzes = new ArrayList<>();
-        List<UserVO> users = new ArrayList<>();
+        result.put("search", query);
+        result.put("openPosts", new ArrayList<>());
+        result.put("questionPosts", new ArrayList<>());
+        result.put("quizzes", new ArrayList<>());
+        result.put("users", new ArrayList<>());
+        return result;
+    }
+    public boolean isBlankQuery(String query){
+        boolean result = false;
+        if(query == null || query.length() == 0){
+            result = true;
+        }
+        return result;
+    }
 
-        for (String query : queries) {
-            if (query != null && !query.trim().isEmpty()) {
-                openPosts.addAll(searchService.getOpenPostBySearchQuery(query));
-                questionPosts.addAll(searchService.getQuestionPostBySearchQuery(query));
-                quizzes.addAll(searchService.getQuizBySearchQuery(query));
-                users.addAll(searchService.getUserBySearchQuery(query));
-            }
+    @GetMapping
+    public ResponseEntity<ApiResponseDTO> searchResult(@RequestParam(value = "search", required = false) String query) {
+        Map<String, Object> result = createEmptyResult(query);
+        if (isBlankQuery(query)) {
+            return ResponseEntity.ok(ApiResponseDTO.of("검색 결과", result));
         }
 
-        // 중복 제거 (ID 기준으로 Set 사용)
-        Set<PostSearchDTO> openPostsSet = new LinkedHashSet<>(openPosts);
-        Set<PostSearchDTO> questionPostsSet = new LinkedHashSet<>(questionPosts);
-        Set<QuizVO> quizzesSet = new LinkedHashSet<>(quizzes);
-        Set<UserVO> usersSet = new LinkedHashSet<>(users);
-        
-        // ID 기준으로 중복 제거 (equals/hashCode가 제대로 구현되어 있지 않을 수 있으므로)
-        users = users.stream()
-                .collect(Collectors.toMap(
-                    UserVO::getId,
-                    user -> user,
-                    (existing, replacement) -> existing
-                ))
-                .values()
-                .stream()
-                .collect(Collectors.toList());
-        
-        openPosts = new ArrayList<>(openPostsSet);
-        questionPosts = new ArrayList<>(questionPostsSet);
-        quizzes = new ArrayList<>(quizzesSet);
+        String trimQuery = query.trim();
 
-        result.put("search", queries);
-        result.put("openPosts", openPosts);
-        result.put("questionPosts", questionPosts);
-        result.put("quizzes", quizzes);
-        result.put("users", users);
+        List<QuizVO> quizzes = searchService.getQuizBySearchQuery(trimQuery);
+        List<UserVO> users = searchService.getUserBySearchQuery(trimQuery);
+        List<PostSearchDTO> openPosts = searchService.searchOpenPosts(trimQuery);
+        List<PostSearchDTO> questionPosts = searchService.searchQuestionPosts(trimQuery);
+
+        result.replace("openPosts", openPosts);
+        result.replace("questionPosts", questionPosts);
+        result.replace("quizzes", quizzes);
+        result.replace("users", users);
 
         return ResponseEntity.ok(ApiResponseDTO.of("검색 결과", result));
     }

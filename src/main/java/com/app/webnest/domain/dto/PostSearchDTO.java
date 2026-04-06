@@ -23,4 +23,5 @@ public class PostSearchDTO {
     private String userThumbnailUrl;
     private String userNickname;
     private Integer commentCount;
+    private Integer score;
 }

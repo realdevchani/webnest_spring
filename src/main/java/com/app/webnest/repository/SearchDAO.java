@@ -27,4 +27,12 @@ public class SearchDAO {
     public List<QuizVO> findSearchQuizzes(String query) {
         return searchMapper.selectQuizByQuery(query);
     }
+
+    public List<PostSearchDTO> findQuestionPostCandidates(String fullKeyword, List<String> keywordList) {
+        return searchMapper.selectQuestionPostCandidates(fullKeyword, keywordList);
+    }
+
+    public List<PostSearchDTO> findOpenPostCandidates(String fullKeyword, List<String> keywordList) {
+        return searchMapper.selectOpenPostCandidates(fullKeyword, keywordList);
+    }
 }
